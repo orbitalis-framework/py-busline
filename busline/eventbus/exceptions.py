@@ -1,0 +1,2 @@
+class TopicNotFound(Exception):
+    pass
