@@ -2,7 +2,7 @@
 
 Agnostic eventbus for Python.
 
-Official eventbus library for [Orbitalis](https://github.com/orbicore/orbitalis)
+Official eventbus library for [Orbitalis](https://github.com/orbitalis-framework/py-orbitalis)
 
 ## Local EventBus
 
