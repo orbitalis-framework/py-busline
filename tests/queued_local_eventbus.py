@@ -3,7 +3,7 @@ from time import sleep
 
 from busline.local_client.publisher.local_eventbus_publisher import LocalEventBusPublisher
 from busline.event.event import Event
-from busline.local_client.eventbus import QueuedLocalEventBus
+from busline.local_client.eventbus.queued_local_eventbus import QueuedLocalEventBus
 from busline.local_client.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
 
 

@@ -2,14 +2,14 @@ from abc import ABC, abstractmethod
 from busline.event.event import Event
 
 
-class EventListener(ABC):
+class EventHandler(ABC):
 
     @abstractmethod
-    async def on_event(self, topic_name: str, event: Event, **kwargs):
+    async def on_event(self, topic: str, event: Event):
         """
         Callback called when new event arrives
 
-        :param topic_name:
+        :param topic:
         :param event:
         :return:
         """

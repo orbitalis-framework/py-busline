@@ -41,43 +41,44 @@ class EventBus(ABC):
     def subscriptions(self) -> Dict[str, List[Subscriber]]:
         return self.__subscriptions
 
-    def add_subscriber(self, topic_name: str, subscriber: Subscriber):
+    def add_subscriber(self, topic: str, subscriber: Subscriber):
         """
         Add subscriber to topic
 
-        :param topic_name:
+        :param topic:
         :param subscriber:
         :return:
         """
 
-        self.__subscriptions[topic_name].append(subscriber)
+        self.__subscriptions.setdefault(topic, [])
+        self.__subscriptions[topic].append(subscriber)
 
-    def remove_subscriber(self, subscriber: Subscriber, topic_name: str = None, raise_if_topic_missed: bool = False):
+    def remove_subscriber(self, subscriber: Subscriber, topic: str = None, raise_if_topic_missed: bool = False):
         """
         Remove subscriber from topic selected or from all if topic is None
 
         :param raise_if_topic_missed:
         :param subscriber:
-        :param topic_name:
+        :param topic:
         :return:
         """
 
-        if raise_if_topic_missed and isinstance(topic_name, str) and topic_name not in self.__subscriptions.keys():
-            raise TopicNotFound(f"topic '{topic_name}' not found")
+        if raise_if_topic_missed and isinstance(topic, str) and topic not in self.__subscriptions.keys():
+            raise TopicNotFound(f"topic '{topic}' not found")
 
         for name in self.__subscriptions.keys():
 
-            if topic_name is None or topic_name == name:
+            if topic is None or topic == name:
                 self.__subscriptions[name].remove(subscriber)
 
 
     @abstractmethod
-    async def put_event(self, topic_name: str, event: Event):
+    async def put_event(self, topic: str, event: Event):
         """
         Put a new event in the bus and notify subscribers of corresponding
         event's topic
 
-        :param topic_name:
+        :param topic:
         :param event:
         :return:
         """

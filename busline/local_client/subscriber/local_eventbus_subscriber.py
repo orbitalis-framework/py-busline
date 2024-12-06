@@ -13,8 +13,8 @@ class LocalEventBusSubscriber(Subscriber, ABC):
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, eventbus_instance: EventBus | None = None):
-        Subscriber.__init__(self)
+    def __init__(self, subscriber_id: str | None = None, eventbus_instance: EventBus | None = None):
+        Subscriber.__init__(self, subscriber_id)
 
         if eventbus_instance is None:
             eventbus_instance = DEFAULT_EVENT_BUS_INSTANCE

@@ -2,7 +2,7 @@ from uuid import uuid4
 from busline.event.event import Event
 from busline.client.eventbus_connector import EventBusConnector
 from busline.client.publisher.publisher import Publisher
-from busline.client.subscriber.event_listener import EventListener
+from busline.client.subscriber.listener.event_handler import EventHandler
 from busline.client.subscriber.subscriber import Subscriber
 
 
@@ -13,13 +13,13 @@ class EventBusClient(EventBusConnector):
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, publisher: Publisher, subscriber: Subscriber, event_listener: EventListener | None = None, client_id: str = str(uuid4())):
+    def __init__(self, publisher: Publisher, subscriber: Subscriber, event_listener: EventHandler | None = None, client_id: str = str(uuid4())):
         EventBusConnector.__init__(self, client_id)
 
         self._id = client_id
         self.__publisher: Publisher = None
         self.__subscriber: Subscriber = None
-        self.__event_listener: EventListener = None
+        self.__event_listener: EventHandler = None
 
         self.publisher = publisher
         self.subscriber = subscriber
@@ -50,11 +50,11 @@ class EventBusClient(EventBusConnector):
         self.__subscriber = subscriber
 
     @property
-    def event_listener(self) -> EventListener:
+    def event_listener(self) -> EventHandler:
         return self.__event_listener
 
     @event_listener.setter
-    def event_listener(self, event_listener: EventListener):
+    def event_listener(self, event_listener: EventHandler):
         self.__event_listener = event_listener
 
     async def connect(self):

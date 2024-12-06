@@ -13,47 +13,51 @@ class Publisher(EventBusConnector, ABC):
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, publisher_id: str = str(uuid4())):
+    def __init__(self, publisher_id: str | None = None):
+        
+        if publisher_id is None:
+            publisher_id = str(uuid4())
+        
         EventBusConnector.__init__(self, publisher_id)
 
     @abstractmethod
-    async def _internal_publish(self, topic_name: str, event: Event, **kwargs):
+    async def _internal_publish(self, topic: str, event: Event, **kwargs):
         """
         Actual publish on topic the event
 
-        :param topic_name:
+        :param topic:
         :param event:
         :return:
         """
 
-    async def publish(self, topic_name: str, event: Event, **kwargs):
+    async def publish(self, topic: str, event: Event, **kwargs):
         """
         Publish on topic the event
 
-        :param topic_name:
+        :param topic:
         :param event:
         :return:
         """
 
-        logging.debug(f"{self._id} publishing on {topic_name}: {event}")
-        self.on_publishing(topic_name, event)
-        await self._internal_publish(topic_name, event, **kwargs)
-        self.on_published(topic_name, event)
+        logging.debug(f"{self._id} publishing on {topic}: {event}")
+        await self.on_publishing(topic, event)
+        await self._internal_publish(topic, event, **kwargs)
+        await self.on_published(topic, event)
 
-    def on_publishing(self, topic_name: str, event: Event):
+    async def on_publishing(self, topic: str, event: Event):
         """
         Callback called on publishing start
 
-        :param topic_name:
+        :param topic:
         :param event:
         :return:
         """
 
-    def on_published(self, topic_name: str, event: Event):
+    async def on_published(self, topic: str, event: Event):
         """
         Callback called on publishing end
 
-        :param topic_name:
+        :param topic:
         :param event:
         :return:
         """

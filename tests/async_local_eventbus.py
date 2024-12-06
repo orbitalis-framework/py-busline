@@ -1,5 +1,5 @@
 import unittest
-from busline.local_client.eventbus import AsyncLocalEventBus
+from busline.local_client.eventbus.async_local_eventbus import AsyncLocalEventBus
 from busline.local_client.publisher.local_eventbus_publisher import LocalEventBusPublisher
 from busline.event.event import Event
 from busline.local_client.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
@@ -22,8 +22,8 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
             received_event = e
 
-        subscriber = LocalEventBusClosureSubscriber(local_eventbus_instance, callback)
-        publisher = LocalEventBusPublisher(local_eventbus_instance2)
+        subscriber = LocalEventBusClosureSubscriber(callback, eventbus_instance=local_eventbus_instance)
+        publisher = LocalEventBusPublisher(eventbus_instance=local_eventbus_instance2)
 
         await subscriber.subscribe("test")
 

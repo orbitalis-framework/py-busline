@@ -1,19 +1,15 @@
 import unittest
-from busline.local_client.eventbus import AsyncLocalEventBus
 from busline.client.eventbus_client import EventBusClient
 from busline.local_client.local_eventbus_client import LocalEventBusClient
 from busline.local_client.publisher.local_eventbus_publisher import LocalEventBusPublisher
 from busline.event.event import Event
-from busline.client.subscriber.closure_event_listener import ClosureEventListener
+from busline.client.subscriber.listener.closure_event_handler import ClosureEventHandler
 from busline.local_client.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
 
 
 class TestLocalEventBusClient(unittest.IsolatedAsyncioTestCase):
 
     async def test_raw_client(self):
-
-        local_eventbus_instance = AsyncLocalEventBus()       # singleton
-
         received_event = None
 
         event = Event()
@@ -26,10 +22,10 @@ class TestLocalEventBusClient(unittest.IsolatedAsyncioTestCase):
 
             received_event = e
 
-        subscriber = LocalEventBusClosureSubscriber(local_eventbus_instance, subscriber_callback)
-        publisher = LocalEventBusPublisher(local_eventbus_instance)
+        subscriber = LocalEventBusClosureSubscriber(subscriber_callback)
+        publisher = LocalEventBusPublisher()
 
-        client = EventBusClient(publisher, subscriber, ClosureEventListener(client_callback))
+        client = EventBusClient(publisher, subscriber, ClosureEventHandler(client_callback))
 
         await client.subscribe("test")
 

@@ -34,6 +34,4 @@ class LocalEventBusPublisher(Publisher):
         else:
             await self.connect()
 
-        self.on_publishing(topic_name, event)
         await self._eventbus.put_event(topic_name, event)
-        self.on_published(topic_name, event)

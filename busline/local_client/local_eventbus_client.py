@@ -2,6 +2,7 @@ from typing import Callable
 from uuid import uuid4
 
 from busline.event.event import Event
+from busline.local_client import DEFAULT_EVENT_BUS_INSTANCE
 from busline.local_client.eventbus.async_local_eventbus import AsyncLocalEventBus
 from busline.client.eventbus_client import EventBusClient
 from busline.local_client.eventbus.eventbus import EventBus
@@ -14,7 +15,7 @@ class LocalEventBusClient(EventBusClient):
     def __init__(self, on_event_callback: Callable[[str, Event], None], client_id: str = str(uuid4()), eventbus_instance: EventBus | None = None):
 
         if eventbus_instance is None:
-            eventbus_instance = AsyncLocalEventBus()
+            eventbus_instance = DEFAULT_EVENT_BUS_INSTANCE
 
         EventBusClient.__init__(
             self,
