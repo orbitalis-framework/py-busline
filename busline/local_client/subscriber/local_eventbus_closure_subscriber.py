@@ -1,8 +1,8 @@
 from typing import Callable
 from busline.event.event import Event
-from busline.eventbus.eventbus import EventBus
-from busline.eventbus_client.subscriber.closure_event_listener import ClosureEventListener
-from busline.eventbus_client.subscriber.local_eventbus_subscriber import LocalEventBusSubscriber
+from busline.local_client.eventbus.eventbus import EventBus
+from busline.client.subscriber.closure_event_listener import ClosureEventListener
+from busline.local_client.subscriber.local_eventbus_subscriber import LocalEventBusSubscriber
 
 
 class LocalEventBusClosureSubscriber(LocalEventBusSubscriber, ClosureEventListener):
@@ -12,6 +12,6 @@ class LocalEventBusClosureSubscriber(LocalEventBusSubscriber, ClosureEventListen
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, eventbus_instance: EventBus, on_event_callback: Callable[[str, Event], None]):
+    def __init__(self, on_event_callback: Callable[[str, Event], None], eventbus_instance: EventBus | None = None):
         LocalEventBusSubscriber.__init__(self, eventbus_instance)
         ClosureEventListener.__init__(self, on_event_callback)

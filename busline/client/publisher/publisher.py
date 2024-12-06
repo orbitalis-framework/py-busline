@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from uuid import uuid4
 
 from busline.event.event import Event
-from busline.eventbus_client.eventbus_connector import EventBusConnector
+from busline.client.eventbus_connector import EventBusConnector
 
 
 class Publisher(EventBusConnector, ABC):

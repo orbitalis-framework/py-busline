@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List
-from busline.eventbus.exceptions import TopicNotFound
-from busline.eventbus_client.subscriber.subscriber import Subscriber
-from busline.eventbus.topic import Topic
+from typing import Dict, List, Tuple
+from busline.local_client.eventbus.exceptions import TopicNotFound
+from busline.client.subscriber.subscriber import Subscriber
 from busline.event.event import Event
 
 
@@ -27,54 +26,29 @@ class EventBus(ABC):
 
     def __init__(self):
 
-        self.__subscriptions = None
-        self.__topics = None
-
-        self.reset_topics()
-
-    def reset_topics(self):
-        self.__topics: Dict[str, Topic] = {}
         self.__subscriptions: Dict[str, List[Subscriber]] = {}
 
-    def add_topic(self, topic: Topic):
-        self.__topics[topic.name] = topic
-        self.__subscriptions[topic.name] = []
+        self.reset_subscriptions()
 
-    def remove_topic(self, topic_name: str):
-        """
-        Remove topic by name
-
-        :param topic_name:
-        :return:
-        """
-
-        del self.__topics[topic_name]
-        del self.__subscriptions[topic_name]
+    def reset_subscriptions(self):
+        self.__subscriptions = {}
 
     @property
-    def topics(self) -> Dict[str, Topic]:
-        return self.__topics
+    def topics(self) -> List[str]:
+        return list(self.__subscriptions.keys())
 
     @property
     def subscriptions(self) -> Dict[str, List[Subscriber]]:
         return self.__subscriptions
 
-    def add_subscriber(self, topic_name: str, subscriber: Subscriber, raise_if_topic_missed: bool = False):
+    def add_subscriber(self, topic_name: str, subscriber: Subscriber):
         """
         Add subscriber to topic
 
-        :param raise_if_topic_missed:
         :param topic_name:
         :param subscriber:
         :return:
         """
-
-        if topic_name not in self.__topics:
-            if raise_if_topic_missed:
-                raise TopicNotFound(f"topic '{topic_name}' not found")
-
-            else:
-                self.add_topic(Topic(topic_name))
 
         self.__subscriptions[topic_name].append(subscriber)
 
@@ -88,10 +62,10 @@ class EventBus(ABC):
         :return:
         """
 
-        if raise_if_topic_missed and isinstance(topic_name, str) and topic_name not in self.__topics.keys():
+        if raise_if_topic_missed and isinstance(topic_name, str) and topic_name not in self.__subscriptions.keys():
             raise TopicNotFound(f"topic '{topic_name}' not found")
 
-        for name in self.__topics.keys():
+        for name in self.__subscriptions.keys():
 
             if topic_name is None or topic_name == name:
                 self.__subscriptions[name].remove(subscriber)

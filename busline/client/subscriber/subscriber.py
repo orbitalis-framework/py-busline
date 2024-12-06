@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from uuid import uuid4
 
 from busline.event.event import Event
-from busline.eventbus_client.eventbus_connector import EventBusConnector
-from busline.eventbus_client.subscriber.event_listener import EventListener
+from busline.client.eventbus_connector import EventBusConnector
+from busline.client.subscriber.event_listener import EventListener
 
 
 class Subscriber(EventBusConnector, EventListener, ABC):

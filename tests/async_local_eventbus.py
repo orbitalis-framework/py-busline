@@ -1,8 +1,8 @@
 import unittest
-from busline.eventbus.async_local_eventbus import AsyncLocalEventBus
-from busline.eventbus_client.publisher.local_eventbus_publisher import LocalEventBusPublisher
+from busline.local_client.eventbus import AsyncLocalEventBus
+from busline.local_client.publisher.local_eventbus_publisher import LocalEventBusPublisher
 from busline.event.event import Event
-from busline.eventbus_client.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
+from busline.local_client.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
 
 
 class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):

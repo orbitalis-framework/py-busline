@@ -1,7 +1,8 @@
 from busline.event.event import Event
-from busline.eventbus.eventbus import EventBus
-from busline.eventbus_client.exceptions import EventBusClientNotConnected
-from busline.eventbus_client.publisher.publisher import Publisher
+from busline.local_client import DEFAULT_EVENT_BUS_INSTANCE
+from busline.local_client.eventbus.eventbus import EventBus
+from busline.client.exceptions import EventBusClientNotConnected
+from busline.client.publisher.publisher import Publisher
 
 
 class LocalEventBusPublisher(Publisher):
@@ -11,8 +12,11 @@ class LocalEventBusPublisher(Publisher):
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, eventbus_instance: EventBus):
+    def __init__(self, eventbus_instance: EventBus | None = None):
         Publisher.__init__(self)
+
+        if eventbus_instance is None:
+            eventbus_instance = DEFAULT_EVENT_BUS_INSTANCE
 
         self._eventbus = eventbus_instance
         self._connected = False

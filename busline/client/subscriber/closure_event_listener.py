@@ -1,6 +1,6 @@
 from typing import Callable
 from busline.event.event import Event
-from busline.eventbus_client.subscriber.event_listener import EventListener
+from busline.client.subscriber.event_listener import EventListener
 
 
 class ClosureEventListener(EventListener):

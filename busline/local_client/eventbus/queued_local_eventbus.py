@@ -3,7 +3,7 @@ import logging
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
 from busline.event.event import Event
-from busline.eventbus.eventbus import EventBus
+from busline.local_client.eventbus.eventbus import EventBus
 
 
 MAX_WORKERS = 3
