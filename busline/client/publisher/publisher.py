@@ -18,7 +18,7 @@ class Publisher(EventBusConnector, ABC):
         if publisher_id is None:
             publisher_id = str(uuid4())
         
-        EventBusConnector.__init__(self, publisher_id)
+        super().__init__(publisher_id)
 
     @abstractmethod
     async def _internal_publish(self, topic: str, event: Event, **kwargs):

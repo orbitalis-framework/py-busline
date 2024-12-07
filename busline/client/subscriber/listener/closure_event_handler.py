@@ -11,8 +11,8 @@ class ClosureEventHandler(EventHandler, ABC):
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, on_event_callback: Callable[[str, Event], None]):
-        EventHandler.__init__(self)
+    def __init__(self, on_event_callback: Callable[[str, Event], None], **kwargs):
+        super().__init__(**kwargs)
 
         self.__on_event_callback = on_event_callback
 

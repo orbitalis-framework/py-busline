@@ -9,8 +9,8 @@ from busline.event.event import Event
 
 class MultiHandlersSubscriber(Subscriber, ABC):
 
-    def __init__(self, subscriber_id: str | None = None, default_event_handler: EventHandler | Callable[[str, Event], None] | None = None):
-        Subscriber.__init__(self, subscriber_id)
+    def __init__(self, subscriber_id: str | None = None, default_event_handler: EventHandler | Callable[[str, Event], None] | None = None, **kwargs):
+        super().__init__(subscriber_id, **kwargs)
 
         if default_event_handler is not None and not isinstance(default_event_handler, EventHandler):
             default_event_handler = ClosureEventHandler(on_event_callback=default_event_handler)

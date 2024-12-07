@@ -5,7 +5,7 @@ from busline.client.subscriber.listener.closure_event_handler import ClosureEven
 from busline.local_client.subscriber.local_eventbus_subscriber import LocalEventBusSubscriber
 
 
-class LocalEventBusClosureSubscriber(LocalEventBusSubscriber, ClosureEventHandler):
+class LocalEventBusClosureSubscriber(ClosureEventHandler, LocalEventBusSubscriber):
     """
     Subscriber which works with local eventbus, this class can be initialized and used stand-alone
 
@@ -13,5 +13,4 @@ class LocalEventBusClosureSubscriber(LocalEventBusSubscriber, ClosureEventHandle
     """
 
     def __init__(self, on_event_callback: Callable[[str, Event], None], subscriber_id: str | None = None, eventbus_instance: EventBus | None = None):
-        LocalEventBusSubscriber.__init__(self, subscriber_id, eventbus_instance)
-        ClosureEventHandler.__init__(self, on_event_callback)
+        super().__init__(subscriber_id=subscriber_id, eventbus_instance=eventbus_instance, on_event_callback=on_event_callback)

@@ -19,9 +19,8 @@ class LocalEventBusClient(EventBusClient):
 
         EventBusClient.__init__(
             self,
-            publisher=LocalEventBusPublisher(eventbus_instance=eventbus_instance),
-            subscriber=LocalEventBusClosureSubscriber(on_event_callback, eventbus_instance=eventbus_instance),
-            client_id=client_id
+            publisher=LocalEventBusPublisher(publisher_id=client_id, eventbus_instance=eventbus_instance),
+            subscriber=LocalEventBusClosureSubscriber(subscriber_id=client_id, on_event_callback=on_event_callback, eventbus_instance=eventbus_instance),
         )
 
 

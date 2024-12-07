@@ -12,8 +12,8 @@ class LocalEventBusPublisher(Publisher):
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, eventbus_instance: EventBus | None = None):
-        Publisher.__init__(self)
+    def __init__(self, publisher_id: str | None = None, eventbus_instance: EventBus | None = None):
+        super().__init__(publisher_id)
 
         if eventbus_instance is None:
             eventbus_instance = DEFAULT_EVENT_BUS_INSTANCE

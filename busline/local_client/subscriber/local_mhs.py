@@ -9,5 +9,4 @@ from busline.local_client.subscriber.local_eventbus_subscriber import LocalEvent
 
 class LocalMultiHandlersSubscriber(LocalEventBusSubscriber, MultiHandlersSubscriber):
     def __init__(self, subscriber_id: str | None = None, default_event_handler: EventHandler | Callable[[str, Event], None] | None = None, eventbus_instance: EventBus | None = None):
-        LocalEventBusSubscriber.__init__(self, eventbus_instance)
-        MultiHandlersSubscriber.__init__(self, subscriber_id, default_event_handler)
+        super().__init__(subscriber_id, eventbus_instance=eventbus_instance, default_event_handler=default_event_handler)

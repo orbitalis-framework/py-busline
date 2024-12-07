@@ -92,15 +92,10 @@ You could create a client to allow components to use it instead of become a publ
 from busline.client.eventbus_client import EventBusClient
 from busline.event.event import Event
 
-
-def client_callback(topic_name: str, e: Event):
-    print(e)
-
-
 subscriber = YourEventBusSubscriber(...)
 publisher = YourEventBusPublisher(...)
 
-client = EventBusClient(publisher, subscriber, ClosureEventListener(client_callback))
+client = EventBusClient(publisher, subscriber)
 ```
 
 

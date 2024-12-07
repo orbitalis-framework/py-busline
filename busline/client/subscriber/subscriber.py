@@ -17,8 +17,7 @@ class Subscriber(EventBusConnector, EventHandler, ABC):
         if subscriber_id is None:
             subscriber_id = str(uuid4())
         
-        EventBusConnector.__init__(self, subscriber_id)
-        EventHandler.__init__(self)
+        super().__init__(subscriber_id)
 
 
     @abstractmethod
