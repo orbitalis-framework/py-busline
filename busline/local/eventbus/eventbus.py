@@ -1,45 +1,31 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Tuple
-from busline.local_client.eventbus.exceptions import TopicNotFound
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from busline.exceptions import TopicNotFound
 from busline.client.subscriber.subscriber import Subscriber
 from busline.event.event import Event
 
 
-
+@dataclass
 class EventBus(ABC):
     """
     Abstract class used as base for new eventbus implemented in local projects.
 
-    Eventbus are *singleton*
-
     Author: Nicola Ricciardi
     """
 
-    # === SINGLETON pattern ===
-    _instance = None
+    subscriptions: Dict[str, List[Subscriber]] = field(default_factory=dict)
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-
-        return cls._instance
-
-    def __init__(self):
-
-        self.__subscriptions: Dict[str, List[Subscriber]] = {}
+    def __post_init__(self):
 
         self.reset_subscriptions()
 
     def reset_subscriptions(self):
-        self.__subscriptions = {}
+        self.subscriptions = {}
 
     @property
     def topics(self) -> List[str]:
-        return list(self.__subscriptions.keys())
-
-    @property
-    def subscriptions(self) -> Dict[str, List[Subscriber]]:
-        return self.__subscriptions
+        return list(self.subscriptions.keys())
 
     def add_subscriber(self, topic: str, subscriber: Subscriber):
         """
@@ -50,10 +36,10 @@ class EventBus(ABC):
         :return:
         """
 
-        self.__subscriptions.setdefault(topic, [])
-        self.__subscriptions[topic].append(subscriber)
+        self.subscriptions.setdefault(topic, [])
+        self.subscriptions[topic].append(subscriber)
 
-    def remove_subscriber(self, subscriber: Subscriber, topic: str = None, raise_if_topic_missed: bool = False):
+    def remove_subscriber(self, subscriber: Subscriber, topic: Optional[str] = None, raise_if_topic_missed: bool = False):
         """
         Remove subscriber from topic selected or from all if topic is None
 
@@ -63,14 +49,17 @@ class EventBus(ABC):
         :return:
         """
 
-        if raise_if_topic_missed and isinstance(topic, str) and topic not in self.__subscriptions.keys():
+        if raise_if_topic_missed and isinstance(topic, str) and topic not in self.subscriptions.keys():
             raise TopicNotFound(f"topic '{topic}' not found")
 
-        for name in self.__subscriptions.keys():
+        for name in self.subscriptions.keys():
 
             if topic is None or topic == name:
-                self.__subscriptions[name].remove(subscriber)
+                self.subscriptions[name].remove(subscriber)
 
+
+    def _topic_names_match(self, t1: str, t2: str):
+        return t1 == t2
 
     @abstractmethod
     async def put_event(self, topic: str, event: Event):

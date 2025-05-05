@@ -1,24 +1,19 @@
 from abc import ABC, abstractmethod
 from uuid import uuid4
+from typing import Optional
+from dataclasses import dataclass, field
 
 
+@dataclass(kw_only=True)
 class EventBusConnector(ABC):
     """
-    Abstract class which is used as base class to create a component which interacts with eventbus
+    Abstract class which provides methods to interact with eventbus
 
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, connector_id: str = str(uuid4())):
-        self._id = connector_id
+    identifier: str = field(default=str(uuid4()))
 
-    @property
-    def id(self) -> str:
-        return self._id
-
-    @id.setter
-    def id(self, value):
-        self._id = value
 
     @abstractmethod
     async def connect(self):

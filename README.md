@@ -11,9 +11,10 @@ Official eventbus library for [Orbitalis](https://github.com/orbitalis-framework
 #### Using Publisher/Subscriber
 
 ```python
-from busline.local_client.publisher.local_eventbus_publisher import LocalEventBusPublisher
+from busline.local.publisher.local_publisher import LocalEventBusPublisher
 from busline.event.event import Event
-from busline.local_client.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
+from busline.local.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
+
 
 def callback(topic_name: str, event: Event):
     print(event)
@@ -31,7 +32,7 @@ await publisher.publish("test-topic", Event())  # publish empty event
 
 ```python
 from busline.event.event import Event
-from busline.local_client.local_eventbus_client import LocalEventBusClient
+from busline.local.local_pubsub_client import LocalEventBusClient
 
 
 def callback(topic_name: str, event: Event):
@@ -66,7 +67,7 @@ Implement business logic of your `Publisher` and `Subscriber` and... done. Nothi
 
 ```python
 from busline.event.event import Event
-from busline.client.publisher.publisher import Publisher
+from busline.client.publisher import Publisher
 
 
 class YourEventBusPublisher(Publisher):
@@ -89,7 +90,7 @@ class YourEventBusSubscriber(Subscriber):
 You could create a client to allow components to use it instead of become a publisher or subscriber.
 
 ```python
-from busline.client.eventbus_client import EventBusClient
+from busline.client.pubsub_client import EventBusClient
 from busline.event.event import Event
 
 subscriber = YourEventBusSubscriber(...)
@@ -112,7 +113,7 @@ which is run every time a new event comes. In addiction, we can (but it is not n
 A local implementation is already provided:
 
 ```python
-from busline.local_client.subscriber.local_mhs import LocalMultiHandlersSubscriber
+from busline.local.subscriber.local_mhs import LocalMultiHandlersSubscriber
 
 subscriber = LocalMultiHandlersSubscriber(default_event_handler=callback)
 

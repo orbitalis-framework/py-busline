@@ -5,9 +5,9 @@ from busline.event.event import Event
 class EventHandler(ABC):
 
     @abstractmethod
-    async def on_event(self, topic: str, event: Event):
+    async def handle(self, topic: str, event: Event):
         """
-        Callback called when new event arrives
+        Manage an event of a topic
 
         :param topic:
         :param event:
