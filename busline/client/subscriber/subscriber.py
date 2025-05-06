@@ -1,24 +1,31 @@
 from abc import ABC, abstractmethod
-from uuid import uuid4
+from dataclasses import dataclass
+from typing import Optional
 
 from busline.client.eventbus_connector import EventBusConnector
-from busline.client.subscriber.listener.event_handler import EventHandler
+from busline.event.event import Event
 
 
-class Subscriber(EventBusConnector, EventHandler, ABC):
+@dataclass
+class Subscriber(EventBusConnector, ABC):
     """
     Abstract class which can be implemented by your components which must be able to subscribe on eventbus
 
     Author: Nicola Ricciardi
     """
 
-    def __init__(self, subscriber_id: str | None = None):
-        
-        if subscriber_id is None:
-            subscriber_id = str(uuid4())
-        
-        super().__init__(subscriber_id)
+    @abstractmethod
+    async def on_event(self, topic: str, event: Event):
+        """
+        Callback called when an event arrives from a topic
+        """
 
+    async def notify(self, topic: str, event: Event, **kwargs):
+        """
+        Notify subscriber
+        """
+
+        await self.on_event(topic, event)
 
     @abstractmethod
     async def _internal_subscribe(self, topic: str, **kwargs):
@@ -30,7 +37,7 @@ class Subscriber(EventBusConnector, EventHandler, ABC):
         """
 
     @abstractmethod
-    async def _internal_unsubscribe(self, topic: str | None = None, **kwargs):
+    async def _internal_unsubscribe(self, topic: Optional[str] = None, **kwargs):
         """
         Actual unsubscribe to topic
 

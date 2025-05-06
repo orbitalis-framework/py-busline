@@ -1,4 +1,0 @@
-
-
-class EventBusClientNotConnected(Exception):
-    pass

@@ -1,24 +1,17 @@
 import logging
 from abc import ABC, abstractmethod
-from uuid import uuid4
-
+from dataclasses import dataclass
 from busline.event.event import Event
 from busline.client.eventbus_connector import EventBusConnector
 
 
+@dataclass
 class Publisher(EventBusConnector, ABC):
     """
     Abstract class which can be implemented by your components which must be able to publish on eventbus
 
     Author: Nicola Ricciardi
     """
-
-    def __init__(self, publisher_id: str | None = None):
-        
-        if publisher_id is None:
-            publisher_id = str(uuid4())
-        
-        super().__init__(publisher_id)
 
     @abstractmethod
     async def _internal_publish(self, topic: str, event: Event, **kwargs):
@@ -39,12 +32,12 @@ class Publisher(EventBusConnector, ABC):
         :return:
         """
 
-        logging.debug(f"{self._id} publishing on {topic}: {event}")
-        await self.on_publishing(topic, event)
+        logging.debug(f"{self.identifier} publishing on {topic}: {event}")
+        await self.on_publishing(topic, event, **kwargs)
         await self._internal_publish(topic, event, **kwargs)
-        await self.on_published(topic, event)
+        await self.on_published(topic, event, **kwargs)
 
-    async def on_publishing(self, topic: str, event: Event):
+    async def on_publishing(self, topic: str, event: Event, **kwargs):
         """
         Callback called on publishing start
 
@@ -53,7 +46,7 @@ class Publisher(EventBusConnector, ABC):
         :return:
         """
 
-    async def on_published(self, topic: str, event: Event):
+    async def on_published(self, topic: str, event: Event, **kwargs):
         """
         Callback called on publishing end
 
