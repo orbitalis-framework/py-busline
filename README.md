@@ -36,7 +36,8 @@ await publisher.disconnect()
 #### Using EventBusClient
 
 ```python
-client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))      # use singleton local eventbus
+client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))
+# NOTE: both publisher and subscriber will use singleton local eventbus
 
 await client.connect()
 
