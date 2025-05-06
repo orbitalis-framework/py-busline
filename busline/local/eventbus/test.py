@@ -92,29 +92,22 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await subscriber.connect()
 
         await subscriber.subscribe("t1")
-        await subscriber.subscribe("t2", handlers=callback)
+        await subscriber.subscribe("t2", handler=ClosureEventHandler(callback))
 
-        await subscriber.on_event("t1", Event())
+        await subscriber.notify("t1", Event())
 
         self.assertEqual(received_event, 1)
 
-        await subscriber.on_event("t2", Event())
+        await subscriber.notify("t2", Event())
 
-        self.assertEqual(received_event, 3)
+        self.assertEqual(received_event, 2)
 
         await subscriber.unsubscribe()
 
-        await subscriber.on_event("t1", Event())
-        await subscriber.on_event("t2", Event())
+        await subscriber.notify("t1", Event())
+        await subscriber.notify("t2", Event())
 
-        self.assertEqual(received_event, 5)
-
-        subscriber.default_event_handler = None
-
-        await subscriber.on_event("t1", Event())
-        await subscriber.on_event("t2", Event())
-
-        self.assertEqual(received_event, 5)
+        self.assertEqual(received_event, 2)
 
 if __name__ == '__main__':
     unittest.main()

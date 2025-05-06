@@ -11,39 +11,35 @@ Official eventbus library for [Orbitalis](https://github.com/orbitalis-framework
 #### Using Publisher/Subscriber
 
 ```python
-from busline.local.publisher.local_publisher import LocalEventBusPublisher
-from busline.event.event import Event
-from busline.local.subscriber.local_eventbus_closure_subscriber import LocalEventBusClosureSubscriber
+subscriber = LocalEventBusMultiHandlersSubscriber(
+    eventbus=local_eventbus_instance1,
+    fallback_event_handler=ClosureEventHandler(lambda t, e: print(t, e))
+)
+publisher = LocalEventBusPublisher(eventbus=local_eventbus_instance2)
 
+await subscriber.connect()
+await publisher.connect()
 
-def callback(topic_name: str, event: Event):
-    print(event)
+await subscriber.subscribe("topic-name")
 
+await publisher.publish("topic-name", Event())  # publish empty event
 
-subscriber = LocalEventBusClosureSubscriber(callback)
-publisher = LocalEventBusPublisher()
-
-await subscriber.subscribe("test-topic")
-
-await publisher.publish("test-topic", Event())  # publish empty event
+await subscriber.disconnect()
+await publisher.disconnect()
 ```
 
 #### Using EventBusClient
 
 ```python
-from busline.event.event import Event
-from busline.local.local_pubsub_client import LocalEventBusClient
+client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))
 
+await client.connect()
 
-def callback(topic_name: str, event: Event):
-    print(event)
+await client.subscribe("topic-name")
 
+await client.publish("topic-name", Event())  # publish empty event
 
-client = LocalEventBusClient(callback)
-
-await client.subscribe("test")
-
-await client.publish("test", Event())
+await client.disconnect()
 ```
 
 #### Specifying EventBus
@@ -66,10 +62,6 @@ publisher = LocalEventBusPublisher(eventbus_instance=local_eventbus_instance2)
 Implement business logic of your `Publisher` and `Subscriber` and... done. Nothing more.
 
 ```python
-from busline.event.event import Event
-from busline.client.publisher import Publisher
-
-
 class YourEventBusPublisher(Publisher):
 
     async def _internal_publish(self, topic_name: str, event: Event, **kwargs):
@@ -77,10 +69,6 @@ class YourEventBusPublisher(Publisher):
 ```
 
 ```python
-from busline.client.subscriber.subscriber import Subscriber
-from busline.event.event import Event
-
-
 class YourEventBusSubscriber(Subscriber):
 
     async def on_event(self, topic_name: str, event: Event, **kwargs):
@@ -90,13 +78,10 @@ class YourEventBusSubscriber(Subscriber):
 You could create a client to allow components to use it instead of become a publisher or subscriber.
 
 ```python
-from busline.client.pubsub_client import EventBusClient
-from busline.event.event import Event
-
 subscriber = YourEventBusSubscriber(...)
 publisher = YourEventBusPublisher(...)
 
-client = EventBusClient(publisher, subscriber)
+client = PubSubClient(publisher, subscriber)
 ```
 
 
@@ -107,22 +92,19 @@ every event (and related topic) is passed.
 
 ### MultiHandlerSubscriber
 
-`MultiHandlerSubscriber` is an enhanced subscriber which manages multi-handlers for each topic. We can specify a _default handler_,
-which is run every time a new event comes. In addiction, we can (but it is not needed) specify additional handlers for each topic.
+`MultiHandlerSubscriber` is an enhanced subscriber which manages an handler for each topic. We can specify a _fallback handler_,
+which is run if no handler is spefied for a subscribed topic.
+
+If the subscriber is not subscribed to a topic, fallback handler is not called.
 
 A local implementation is already provided:
 
 ```python
-from busline.local.subscriber.local_mhs import LocalMultiHandlersSubscriber
-
-subscriber = LocalMultiHandlersSubscriber(default_event_handler=callback)
+subscriber = LocalMultiHandlersSubscriber(fallback_event_handler=...)
 
 await subscriber.subscribe("t1")
-await subscriber.subscribe("t2", handlers=callback)
-await subscriber.subscribe("t3", handlers=[callback1, event_handler1, event_handler2, callback2])
+await subscriber.subscribe("t2", handler=...)
 ```
-
-Raw functions are automatically wrapped into a `ClosureEventHandler`
 
 
 

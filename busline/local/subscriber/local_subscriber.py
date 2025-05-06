@@ -1,5 +1,7 @@
 import logging
 from dataclasses import dataclass, field
+from typing import Optional
+
 from busline.client.subscriber.mhs import MultiHandlersSubscriber
 from busline.local.eventbus.eventbus import EventBus
 from busline.exceptions import EventBusClientNotConnected
@@ -25,14 +27,14 @@ class LocalEventBusMultiHandlersSubscriber(MultiHandlersSubscriber):
         logging.info(f"subscriber {self.identifier} disconnecting...")
         self.connected = False
 
-    async def _internal_subscribe(self, topic_name: str, **kwargs):
+    async def _internal_subscribe(self, topic: str, **kwargs):
         if not self.connected:
             raise EventBusClientNotConnected()
 
-        self.eventbus.add_subscriber(topic_name, self)
+        self.eventbus.add_subscriber(topic, self)
 
-    async def _internal_unsubscribe(self, topic_name: str | None = None, **kwargs):
+    async def _internal_unsubscribe(self, topic: Optional[str] = None, **kwargs):
         if not self.connected:
             raise EventBusClientNotConnected()
 
-        self.eventbus.remove_subscriber(self, topic_name)
+        self.eventbus.remove_subscriber(self, topic)

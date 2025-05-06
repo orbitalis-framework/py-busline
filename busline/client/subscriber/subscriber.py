@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Optional
+
 from busline.client.eventbus_connector import EventBusConnector
 from busline.event.event import Event
 
@@ -18,6 +20,13 @@ class Subscriber(EventBusConnector, ABC):
         Callback called when an event arrives from a topic
         """
 
+    async def notify(self, topic: str, event: Event, **kwargs):
+        """
+        Notify subscriber
+        """
+
+        await self.on_event(topic, event)
+
     @abstractmethod
     async def _internal_subscribe(self, topic: str, **kwargs):
         """
@@ -28,7 +37,7 @@ class Subscriber(EventBusConnector, ABC):
         """
 
     @abstractmethod
-    async def _internal_unsubscribe(self, topic: str | None = None, **kwargs):
+    async def _internal_unsubscribe(self, topic: Optional[str] = None, **kwargs):
         """
         Actual unsubscribe to topic
 

@@ -49,17 +49,27 @@ class EventBus(ABC):
         :return:
         """
 
-        if raise_if_topic_missed and isinstance(topic, str) and topic not in self.subscriptions.keys():
+        if raise_if_topic_missed and topic is not None and topic not in self.subscriptions.keys():
             raise TopicNotFound(f"topic '{topic}' not found")
 
         for name in self.subscriptions.keys():
 
-            if topic is None or topic == name:
-                self.subscriptions[name].remove(subscriber)
+            if topic is None or self._topic_names_match(topic, name):
+                if subscriber in self.subscriptions[name]:
+                    self.subscriptions[name].remove(subscriber)
 
 
     def _topic_names_match(self, t1: str, t2: str):
         return t1 == t2
+
+    def _get_topic_subscriptions(self, topic: str) -> List[Subscriber]:
+
+        topic_subscriptions: List[Subscriber] = []
+        for t, subs in self.subscriptions.items():
+            if self._topic_names_match(t, topic):
+                topic_subscriptions.extend(subs)
+
+        return topic_subscriptions
 
     @abstractmethod
     async def put_event(self, topic: str, event: Event):

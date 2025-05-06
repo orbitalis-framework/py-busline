@@ -3,3 +3,6 @@ class TopicNotFound(Exception):
 
 class EventBusClientNotConnected(Exception):
     pass
+
+class EventHandlerNotFound(Exception):
+    pass

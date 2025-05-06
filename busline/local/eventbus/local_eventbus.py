@@ -15,11 +15,9 @@ class LocalEventBus(EventBus):
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            cls._instance = DEFAULT_EVENT_BUS_INSTANCE # super().__new__(cls)
 
         return cls._instance
 
-    _eventbus = DEFAULT_EVENT_BUS_INSTANCE
-
     async def put_event(self, topic: str, event: Event):
-        return self._eventbus.put_event(topic, event)
+        return self._instance.put_event(topic, event)

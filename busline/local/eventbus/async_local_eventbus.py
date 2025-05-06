@@ -15,7 +15,7 @@ class AsyncLocalEventBus(EventBus):
 
     async def put_event(self, topic: str, event: Event):
 
-        topic_subscriptions = self.subscriptions.get(topic, [])
+        topic_subscriptions = self._get_topic_subscriptions(topic)
 
         logging.debug(f"new event {event} on topic {topic}, notify subscribers: {topic_subscriptions}")
 
