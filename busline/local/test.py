@@ -1,5 +1,6 @@
 import unittest
 
+from busline.client.multiclient import EventBusMultiClient
 from busline.client.subscriber.event_handler.closure_event_handler import ClosureEventHandler
 from busline.local.eventbus.async_local_eventbus import AsyncLocalEventBus
 from busline.local.eventbus.local_eventbus import LocalEventBus
@@ -108,6 +109,45 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await subscriber.notify("t2", Event())
 
         self.assertEqual(received_event, 2)
+
+    async def test_multi_client(self):
+        local_eventbus_instance1 = AsyncLocalEventBus()  # not singleton
+        local_eventbus_instance2 = AsyncLocalEventBus()  # not singleton
+
+        n_events: int = 0
+
+        def on_event_callback(topic_name: str, e: Event):
+            nonlocal n_events
+
+            n_events += 1
+
+        client1 = LocalPubSubClient.from_callback(
+            lambda t, e: ...,
+            eventbus=local_eventbus_instance1
+        )
+
+        client2 = LocalPubSubClient.from_callback(
+            lambda t, e: ...,
+            eventbus=local_eventbus_instance2
+        )
+
+        multi_client = EventBusMultiClient([
+            client1,
+            client2
+        ])
+
+        await multi_client.connect()
+
+        await multi_client.subscribe("topic", handler=ClosureEventHandler(on_event_callback))
+
+        await multi_client.publish("topic", Event())
+
+        await multi_client.disconnect()
+
+        self.assertEqual(n_events, 2)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

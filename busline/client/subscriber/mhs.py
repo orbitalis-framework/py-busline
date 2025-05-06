@@ -29,11 +29,7 @@ class MultiHandlersSubscriber(Subscriber, ABC):
     topic_names_matcher: Callable[[str, str], bool] = field(repr=False, default=lambda t1, t2: t1 == t2)
     event_handler_always_required: bool = field(default=False)
 
-    async def subscribe(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
-        await super().subscribe(topic, handler=handler, **kwargs)
-
     async def _on_subscribing(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
-        await super()._on_subscribing(topic, **kwargs)
 
         if self.fallback_event_handler is None:
             if self.event_handler_always_required:
@@ -42,11 +38,9 @@ class MultiHandlersSubscriber(Subscriber, ABC):
                 logging.warning(f"event handler for topic '{topic}' not found in subscriber {self.identifier}")
 
     async def _on_subscribed(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
-        await super()._on_subscribed(topic, **kwargs)
         self.handlers[topic] = handler
 
     async def _on_unsubscribed(self, topic: str | None, **kwargs):
-        await super()._on_subscribed(topic, **kwargs)
 
         if topic is None:
             self.handlers = {}

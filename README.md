@@ -11,6 +11,9 @@ Official eventbus library for [Orbitalis](https://github.com/orbitalis-framework
 #### Using Publisher/Subscriber
 
 ```python
+local_eventbus_instance1 = LocalEventBus()       # singleton
+local_eventbus_instance2 = LocalEventBus()       # singleton
+
 subscriber = LocalEventBusMultiHandlersSubscriber(
     eventbus=local_eventbus_instance1,
     fallback_event_handler=ClosureEventHandler(lambda t, e: print(t, e))
@@ -31,7 +34,7 @@ await publisher.disconnect()
 #### Using EventBusClient
 
 ```python
-client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))
+client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))      # it will use singleton local eventbus
 
 await client.connect()
 
@@ -40,6 +43,36 @@ await client.subscribe("topic-name")
 await client.publish("topic-name", Event())  # publish empty event
 
 await client.disconnect()
+```
+
+#### MultiClient
+
+```python
+local_eventbus_instance1 = AsyncLocalEventBus()  # not singleton
+local_eventbus_instance2 = AsyncLocalEventBus()  # not singleton
+
+client1 = LocalPubSubClient.from_callback(
+    lambda t, e: ...,
+    eventbus=local_eventbus_instance1
+)
+
+client2 = LocalPubSubClient.from_callback(
+    lambda t, e: ...,
+    eventbus=local_eventbus_instance2
+)
+
+multi_client = EventBusMultiClient([
+    client1,
+    client2
+])
+
+await multi_client.connect()
+
+await multi_client.subscribe("topic-name", handler=ClosureEventHandler(on_event_callback))
+
+await multi_client.publish("topic-name", Event())
+
+await multi_client.disconnect()
 ```
 
 #### Specifying EventBus

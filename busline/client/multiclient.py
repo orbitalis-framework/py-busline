@@ -20,13 +20,13 @@ class EventBusMultiClient(EventBusClient):
         await asyncio.gather(*tasks)
 
     async def publish(self, topic: str, event: Event, **kwargs):
-        tasks = [client.publish(topic, event) for client in self.clients]
+        tasks = [client.publish(topic, event, **kwargs) for client in self.clients]
         await asyncio.gather(*tasks)
 
     async def subscribe(self, topic: str, **kwargs):
-        tasks = [client.subscribe(topic) for client in self.clients]
+        tasks = [client.subscribe(topic, **kwargs) for client in self.clients]
         await asyncio.gather(*tasks)
 
     async def unsubscribe(self, topic: Optional[str] = None, **kwargs):
-        tasks = [client.unsubscribe(topic) for client in self.clients]
+        tasks = [client.unsubscribe(topic, **kwargs) for client in self.clients]
         await asyncio.gather(*tasks)
