@@ -27,6 +27,8 @@ await subscriber.subscribe("topic-name")
 
 await publisher.publish("topic-name", Event())  # publish empty event
 
+# ...subscriber receives Event()
+
 await subscriber.disconnect()
 await publisher.disconnect()
 ```
@@ -34,13 +36,15 @@ await publisher.disconnect()
 #### Using EventBusClient
 
 ```python
-client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))      # it will use singleton local eventbus
+client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))      # use singleton local eventbus
 
 await client.connect()
 
 await client.subscribe("topic-name")
 
 await client.publish("topic-name", Event())  # publish empty event
+
+# ...client receives Event()
 
 await client.disconnect()
 ```
@@ -71,6 +75,8 @@ await multi_client.connect()
 await multi_client.subscribe("topic-name", handler=ClosureEventHandler(on_event_callback))
 
 await multi_client.publish("topic-name", Event())
+
+# ...both clients receive Event() and handle it using `on_event_callback`
 
 await multi_client.disconnect()
 ```
