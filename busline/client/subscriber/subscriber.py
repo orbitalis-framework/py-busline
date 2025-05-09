@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
@@ -14,6 +15,9 @@ class Subscriber(EventBusConnector, ABC):
     Author: Nicola Ricciardi
     """
 
+    def __repr__(self) -> str:
+        return f"Subscriber({self.identifier})"
+
     @abstractmethod
     async def on_event(self, topic: str, event: Event):
         """
@@ -25,6 +29,7 @@ class Subscriber(EventBusConnector, ABC):
         Notify subscriber
         """
 
+        logging.info(f"{self}: incoming event on {topic} -> {event}")
         await self.on_event(topic, event)
 
     @abstractmethod
@@ -53,11 +58,12 @@ class Subscriber(EventBusConnector, ABC):
         :return:
         """
 
+        logging.info(f"{self}: subscribe on topic {topic}")
         await self._on_subscribing(topic, **kwargs)
         await self._internal_subscribe(topic, **kwargs)
         await self._on_subscribed(topic, **kwargs)
 
-    async def unsubscribe(self, topic: str | None = None, **kwargs):
+    async def unsubscribe(self, topic: Optional[str] = None, **kwargs):
         """
         Unsubscribe to topic
 
@@ -65,6 +71,7 @@ class Subscriber(EventBusConnector, ABC):
         :return:
         """
 
+        logging.info(f"{self}: unsubscribe from topic {topic}")
         await self._on_unsubscribing(topic, **kwargs)
         await self._internal_unsubscribe(topic, **kwargs)
         await self._on_unsubscribed(topic, **kwargs)
@@ -85,7 +92,7 @@ class Subscriber(EventBusConnector, ABC):
         :return:
         """
 
-    async def _on_unsubscribing(self, topic: str | None, **kwargs):
+    async def _on_unsubscribing(self, topic: Optional[str], **kwargs):
         """
         Callback called on unsubscribing
 
@@ -93,7 +100,7 @@ class Subscriber(EventBusConnector, ABC):
         :return:
         """
 
-    async def _on_unsubscribed(self, topic: str | None, **kwargs):
+    async def _on_unsubscribed(self, topic: Optional[str], **kwargs):
         """
         Callback called on unsubscribed
 

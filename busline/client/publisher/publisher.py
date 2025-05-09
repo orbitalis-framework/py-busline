@@ -13,6 +13,9 @@ class Publisher(EventBusConnector, ABC):
     Author: Nicola Ricciardi
     """
 
+    def __repr__(self) -> str:
+        return f"Publisher({self.identifier})"
+
     @abstractmethod
     async def _internal_publish(self, topic: str, event: Event, **kwargs):
         """
@@ -32,10 +35,11 @@ class Publisher(EventBusConnector, ABC):
         :return:
         """
 
-        logging.debug(f"{self.identifier} publishing on {topic}: {event}")
+        logging.info(f"{self}: publish on {topic} -> {event}")
         await self.on_publishing(topic, event, **kwargs)
         await self._internal_publish(topic, event, **kwargs)
         await self.on_published(topic, event, **kwargs)
+
 
     async def on_publishing(self, topic: str, event: Event, **kwargs):
         """

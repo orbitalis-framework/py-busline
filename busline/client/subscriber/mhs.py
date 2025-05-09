@@ -35,9 +35,10 @@ class MultiHandlersSubscriber(Subscriber, ABC):
             if self.event_handler_always_required:
                 raise EventHandlerNotFound()
             else:
-                logging.warning(f"event handler for topic '{topic}' not found in subscriber {self.identifier}")
+                logging.warning(f"{self}: event handler for topic '{topic}' not found")
 
     async def _on_subscribed(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
+
         self.handlers[topic] = handler
 
     async def _on_unsubscribed(self, topic: str | None, **kwargs):
@@ -47,7 +48,7 @@ class MultiHandlersSubscriber(Subscriber, ABC):
         else:
             del self.handlers[topic]
 
-    def _get_handlers_of_topic(self, topic: str) -> List[EventHandler]:
+    def __get_handlers_of_topic(self, topic: str) -> List[EventHandler]:
 
         handlers = []
         for t, h in self.handlers.items():
@@ -61,13 +62,13 @@ class MultiHandlersSubscriber(Subscriber, ABC):
                         if self.event_handler_always_required:
                             raise EventHandlerNotFound()
                         else:
-                            logging.warning(f"event handler for topic '{topic}' not found in subscriber {self.identifier}")
+                            logging.warning(f"{self}: event handler for topic '{topic}' not found")
 
         return handlers
 
     async def on_event(self, topic: str, event: Event):
 
-        handlers_of_topic: List[EventHandler] = self._get_handlers_of_topic(topic)
+        handlers_of_topic: List[EventHandler] = self.__get_handlers_of_topic(topic)
 
         if len(handlers_of_topic) > 0:
             tasks = [handler.handle(topic, event) for handler in handlers_of_topic]
