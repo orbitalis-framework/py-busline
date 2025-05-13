@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from abc import ABC
-from typing import Dict, List, Callable, Optional
+from typing import Dict, List, Callable, Optional, override
 from dataclasses import dataclass, field
 from busline.client.subscriber.event_handler.event_handler import EventHandler
 from busline.client.subscriber.subscriber import Subscriber
@@ -10,7 +10,7 @@ from busline.exceptions import EventHandlerNotFound
 
 
 @dataclass(kw_only=True)
-class MultiHandlersSubscriber(Subscriber, ABC):
+class TopicSubscriber(Subscriber, ABC):
     """
     Handles different topic events using ad hoc handlers defined by user,
     else it uses fallback handler if provided (otherwise throws an exception)
@@ -29,6 +29,7 @@ class MultiHandlersSubscriber(Subscriber, ABC):
     topic_names_matcher: Callable[[str, str], bool] = field(repr=False, default=lambda t1, t2: t1 == t2)
     event_handler_always_required: bool = field(default=False)
 
+    @override
     async def _on_subscribing(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
 
         if self.fallback_event_handler is None:
@@ -37,10 +38,12 @@ class MultiHandlersSubscriber(Subscriber, ABC):
             else:
                 logging.warning(f"{self}: event handler for topic '{topic}' not found")
 
+    @override
     async def _on_subscribed(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
 
         self.handlers[topic] = handler
 
+    @override
     async def _on_unsubscribed(self, topic: str | None, **kwargs):
 
         if topic is None:
@@ -66,6 +69,7 @@ class MultiHandlersSubscriber(Subscriber, ABC):
 
         return handlers
 
+    @override
     async def on_event(self, topic: str, event: Event):
 
         handlers_of_topic: List[EventHandler] = self.__get_handlers_of_topic(topic)

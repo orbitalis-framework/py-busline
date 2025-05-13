@@ -1,3 +1,5 @@
+from busline.local.subscriber.local_subscriber import LocalEventBusSubscriberfrom busline.local.eventbus.local_eventbus import LocalEventBus
+
 # Busline for Python
 
 Agnostic eventbus for Python.
@@ -14,9 +16,9 @@ Official eventbus library for [Orbitalis](https://github.com/orbitalis-framework
 local_eventbus_instance1 = LocalEventBus()       # singleton
 local_eventbus_instance2 = LocalEventBus()       # singleton
 
-subscriber = LocalEventBusMultiHandlersSubscriber(
+subscriber = LocalEventBusSubscriber(
     eventbus=local_eventbus_instance1,
-    fallback_event_handler=ClosureEventHandler(lambda t, e: print(t, e))
+    fallback_event_handler=ClosureEventHandler(lambda t, e: ...)
 )
 publisher = LocalEventBusPublisher(eventbus=local_eventbus_instance2)
 
@@ -27,7 +29,7 @@ await subscriber.subscribe("topic-name")
 
 await publisher.publish("topic-name", Event())  # publish empty event
 
-# ...subscriber receives Event()
+# ...subscriber receives Event() thanks to singleton LocalEventBus()
 
 await subscriber.disconnect()
 await publisher.disconnect()
@@ -36,8 +38,12 @@ await publisher.disconnect()
 #### Using EventBusClient
 
 ```python
-client = LocalPubSubClient.from_callback(lambda t, e: print(t, e))
-# NOTE: both publisher and subscriber will use singleton local eventbus
+client = LocalPubSubClientBuilder()\
+                    .with_default_publisher()\
+                    .with_closure_subscriber(lambda t, e: ...)\
+                    .build()
+
+# NOTE: both publisher and subscriber will use singleton local eventbus (default)
 
 await client.connect()
 
@@ -56,15 +62,19 @@ await client.disconnect()
 local_eventbus_instance1 = AsyncLocalEventBus()  # not singleton
 local_eventbus_instance2 = AsyncLocalEventBus()  # not singleton
 
-client1 = LocalPubSubClient.from_callback(
-    lambda t, e: ...,
-    eventbus=local_eventbus_instance1
-)
+client1 = LocalPubSubClientBuilder(local_eventbus_instance1)\
+                    .with_default_publisher()\
+                    .with_closure_subscriber(lambda t, e: ...)\
+                    .build()
 
-client2 = LocalPubSubClient.from_callback(
-    lambda t, e: ...,
-    eventbus=local_eventbus_instance2
-)
+# NOTE: client1 pub/sub use `local_eventbus_instance1`
+
+client2 = LocalPubSubClientBuilder(local_eventbus_instance2)\
+                    .with_default_publisher()\
+                    .with_closure_subscriber(lambda t, e: ...)\
+                    .build()
+
+# NOTE: client2 pub/sub use `local_eventbus_instance2`
 
 multi_client = EventBusMultiClient([
     client1,
@@ -73,7 +83,7 @@ multi_client = EventBusMultiClient([
 
 await multi_client.connect()
 
-await multi_client.subscribe("topic-name", handler=ClosureEventHandler(on_event_callback))
+await multi_client.subscribe("topic-name", handler=ClosureEventHandler(lambda t, e: ...))
 
 await multi_client.publish("topic-name", Event())
 
@@ -130,9 +140,9 @@ client = PubSubClient(publisher, subscriber)
 `Subscriber` is the component which receives events. It is a `EventHandler`, therefore it has `on_event` method in which 
 every event (and related topic) is passed.
 
-### MultiHandlerSubscriber
+### TopicSubscriber
 
-`MultiHandlerSubscriber` is an enhanced subscriber which manages an handler for each topic. We can specify a _fallback handler_,
+`TopicSubscriber` is an enhanced subscriber which manages an handler for each topic. We can specify a _fallback handler_,
 which is run if no handler is spefied for a subscribed topic.
 
 If the subscriber is not subscribed to a topic, fallback handler is not called.
@@ -140,7 +150,7 @@ If the subscriber is not subscribed to a topic, fallback handler is not called.
 A local implementation is already provided:
 
 ```python
-subscriber = LocalMultiHandlersSubscriber(fallback_event_handler=...)
+subscriber = LocalEventBusSubscriber(fallback_event_handler=...)
 
 await subscriber.subscribe("t1")
 await subscriber.subscribe("t2", handler=...)

@@ -16,7 +16,7 @@ class MultiEventHandler(EventHandler):
     """
 
     handlers: List[EventHandler]
-    strict_order: bool = True
+    strict_order: bool = False
 
 
     async def handle(self, topic: str, event: Event):

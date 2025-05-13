@@ -1,22 +1,26 @@
 import json
-from dataclasses import dataclass, field
 import uuid
-from typing import Any
-from busline.event.event_metadata import EventMetadata
+from typing import Any, Self
+import datetime
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass(frozen=True)
 class Event:
     """
-    Event sendable in an eventbus
+    Event publishable in an eventbus
 
     Author: Nicola Ricciardi
     """
 
     identifier: str = field(default=str(uuid.uuid4()))
     content: Any = field(default=None)
-    metadata: EventMetadata = field(default=EventMetadata())
+    content_type: Optional[str] = field(default=None)
+    event_type: Optional[str] = field(default=None)
+    timestamp: float = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).timestamp())
+    metadata: dict = field(default_factory=dict)
 
-    @staticmethod
-    def from_json(json_str: str) -> 'Event':
-        return Event(**json.loads(json_str))
+    @classmethod
+    def from_json(cls, json_str: str) -> Self:
+        return cls(**json.loads(json_str))

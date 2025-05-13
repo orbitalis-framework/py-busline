@@ -4,10 +4,10 @@ from busline.client.multiclient import EventBusMultiClient
 from busline.client.subscriber.event_handler.closure_event_handler import ClosureEventHandler
 from busline.local.eventbus.async_local_eventbus import AsyncLocalEventBus
 from busline.local.eventbus.local_eventbus import LocalEventBus
-from busline.local.local_pubsub_client import LocalPubSubClient
+from busline.local.local_pubsub_client import LocalPubSubClientBuilder
 from busline.local.publisher.local_publisher import LocalEventBusPublisher
 from busline.event.event import Event
-from busline.local.subscriber.local_subscriber import LocalEventBusMultiHandlersSubscriber
+from busline.local.subscriber.local_subscriber import LocalEventBusSubscriber
 
 
 class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
@@ -27,7 +27,7 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
             received_event = e
 
-        subscriber = LocalEventBusMultiHandlersSubscriber(
+        subscriber = LocalEventBusSubscriber(
             eventbus=local_eventbus_instance1,
             fallback_event_handler=ClosureEventHandler(callback)
         )
@@ -59,7 +59,10 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
             received_event = e
 
-        client = LocalPubSubClient.from_callback(client_callback)
+        client = LocalPubSubClientBuilder()\
+                    .with_default_publisher()\
+                    .with_closure_subscriber(client_callback)\
+                    .build()
 
         await client.connect()
 
@@ -85,7 +88,7 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
             received_event += 1
 
-        subscriber = LocalEventBusMultiHandlersSubscriber(
+        subscriber = LocalEventBusSubscriber(
             fallback_event_handler=ClosureEventHandler(callback),
             eventbus=LocalEventBus()
         )
@@ -121,15 +124,15 @@ class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
             n_events += 1
 
-        client1 = LocalPubSubClient.from_callback(
-            lambda t, e: ...,
-            eventbus=local_eventbus_instance1
-        )
+        client1 = LocalPubSubClientBuilder(local_eventbus_instance1)\
+                    .with_default_publisher()\
+                    .with_closure_subscriber(lambda t, e: ...)\
+                    .build()
 
-        client2 = LocalPubSubClient.from_callback(
-            lambda t, e: ...,
-            eventbus=local_eventbus_instance2
-        )
+        client2 = LocalPubSubClientBuilder(local_eventbus_instance2)\
+                    .with_default_publisher()\
+                    .with_closure_subscriber(lambda t, e: ...)\
+                    .build()
 
         multi_client = EventBusMultiClient([
             client1,
