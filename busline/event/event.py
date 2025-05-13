@@ -23,4 +23,25 @@ class Event:
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
+        """
+        Build event object from JSON string
+        """
+
         return cls(**json.loads(json_str))
+
+    @classmethod
+    def from_event(cls, event: 'Event') -> Self:
+        """
+        Build event object based on Event (base) class.
+
+        This method can be useful when Event class is inherited and an event registry is used.
+        """
+
+        return cls(
+            identifier=event.identifier,
+            content=event.content,
+            content_type=event.content_type,
+            event_type=event.event_type,
+            timestamp=event.timestamp,
+            metadata=event.metadata
+        )

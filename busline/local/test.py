@@ -10,7 +10,7 @@ from busline.event.event import Event
 from busline.local.subscriber.local_subscriber import LocalEventBusSubscriber
 
 
-class TestAsyncLocalEventBus(unittest.IsolatedAsyncioTestCase):
+class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
     async def test_async_eventbus(self):
 
