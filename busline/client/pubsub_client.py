@@ -4,6 +4,8 @@ from typing import Optional, override, List, Self
 
 from busline.client.client import EventBusClient
 from busline.client.publisher.publisher import Publisher
+from busline.client.subscriber.event_handler.event_handler import EventHandler
+from busline.client.subscriber.topic_subscriber import TopicSubscriber
 from busline.event.event import Event
 from busline.client.subscriber.subscriber import Subscriber
 
@@ -33,7 +35,7 @@ class PubSubClient(EventBusClient):
         return cls(publishers, subscribers)
 
     @classmethod
-    def from_pubsub_client(cls, client: 'PubSubClient') -> Self:
+    def from_pubsub_client(cls, client: Self) -> Self:
         return cls(client.publishers.copy(), client.subscribers.copy())
 
     @override
@@ -86,6 +88,27 @@ class PubSubClient(EventBusClient):
 
         await asyncio.gather(*[
             subscriber.unsubscribe(topic, **kwargs) for subscriber in self.subscribers
+        ])
+
+
+@dataclass
+class PubSubTopicClient(PubSubClient):
+    """
+    Eventbus client which should used by components which wouldn't be a publisher/subscriber, but they need them
+
+    Author: Nicola Ricciardi
+    """
+
+    subscribers: List[TopicSubscriber]
+
+    @override
+    async def subscribe(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
+        """
+        Subscribe all subscribers on topic
+        """
+
+        await asyncio.gather(*[
+            subscriber.subscribe(topic, handler=handler, **kwargs) for subscriber in self.subscribers
         ])
 
 
