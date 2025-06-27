@@ -44,12 +44,15 @@ class TopicSubscriber(Subscriber, ABC):
         self.handlers[topic] = handler
 
     @override
-    async def _on_unsubscribed(self, topic: str | None, **kwargs):
+    async def _on_unsubscribed(self, topic: Optional[str], **kwargs):
 
         if topic is None:
             self.handlers = {}
         else:
-            del self.handlers[topic]
+            if topic in self.handlers:
+                del self.handlers[topic]
+            else:
+                logging.warning(f"{self}: unsubscribed from unknown topic: {topic}")
 
     def __get_handlers_of_topic(self, topic: str) -> List[EventHandler]:
 
