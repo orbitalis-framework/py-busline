@@ -92,7 +92,7 @@ class PubSubClient(EventBusClient):
 
 
 @dataclass
-class PubSubTopicClient(PubSubClient):
+class PubTopicSubClient(PubSubClient):
     """
     Eventbus client which should used by components which wouldn't be a publisher/subscriber, but they need them
 
@@ -149,3 +149,19 @@ class PubSubClientBuilder:
     def build(self) -> PubSubClient:
         return self.base_client
 
+
+@dataclass
+class PubTopicSubClientBuilder(PubSubClientBuilder):
+    """
+
+    Author: Nicola Ricciardi
+    """
+
+    base_client: PubTopicSubClient = field(
+        default_factory=lambda: PubTopicSubClient([], []),
+        kw_only=True
+    )
+
+    @override
+    def build(self) -> PubTopicSubClient:
+        return self.base_client

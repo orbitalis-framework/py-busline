@@ -7,9 +7,6 @@ from busline.local.eventbus.eventbus import EventBus
 from busline.exceptions import EventBusClientNotConnected
 
 
-ALL_TOPIC_WILDCARD = "*"
-
-
 @dataclass
 class LocalEventBusSubscriber(TopicSubscriber):
     """
