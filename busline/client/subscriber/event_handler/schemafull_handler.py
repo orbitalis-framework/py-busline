@@ -10,7 +10,3 @@ class SchemafullEventHandler(EventHandler, ABC):
     @abstractmethod
     def input_schema(self) -> Dict:
         raise NotImplemented()
-
-    @abstractmethod
-    def output_schema(self) -> Dict:
-        raise NotImplemented()

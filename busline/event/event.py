@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 import datetime
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Generic, TypeVar
 from abc import ABC
 from collections.abc import Buffer
 from busline.utils.serde import SerdableMixin
@@ -23,8 +23,11 @@ class EventPayload(SerdableMixin, ABC):
             **kwargs
         )
 
+
+P = TypeVar('P', bound='EventPayload')
+
 @dataclass(frozen=True, kw_only=True)
-class Event:
+class Event(Generic[P]):
     """
     Event publishable in an eventbus
 
@@ -32,7 +35,7 @@ class Event:
     """
 
     identifier: str = field(default_factory=lambda: str(uuid.uuid4()))
-    payload: Optional[EventPayload] = field(default=None)
+    payload: Optional[P] = field(default=None)
     event_type: Optional[str] = field(default=None)
     timestamp: float = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).timestamp())
     metadata: dict = field(default_factory=dict)
