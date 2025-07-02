@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict, Type
+from functools import wraps
 
 from busline.event.event import Event
 
@@ -22,14 +23,14 @@ class EventRegistry(metaclass=_Singleton):
 
     associations: Dict[str, Type[Event]] = field(default_factory=dict)
 
-    def unregister(self, event_type: str):
+    def remove(self, event_type: str):
         """
         Remove an event type association
         """
 
         self.associations.pop(event_type)
 
-    def register(self, event_type: str, event_class: Type[Event]):
+    def add(self, event_type: str, event_class: Type[Event]):
         """
         Add a new association between an event type and an event class
         """
@@ -60,6 +61,26 @@ class EventRegistry(metaclass=_Singleton):
         return event_class.from_event(event)
 
 
+
+def registry(cls: Type[Event]):
+
+    event_type: str = cls.__name__
+
+    # add event to registry
+    reg = EventRegistry()
+    reg.add(event_type, cls)
+
+    original_post_init = getattr(cls, '__post_init__', None)
+
+    @wraps(cls)
+    def new_post_init(self):
+        self.event_type = event_type
+        if original_post_init:
+            original_post_init(self)
+
+    cls.__post_init__ = new_post_init
+
+    return cls
 
 
 

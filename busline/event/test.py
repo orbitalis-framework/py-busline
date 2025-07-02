@@ -19,8 +19,8 @@ class TestEventRegistry(unittest.TestCase):
 
         event_registry = EventRegistry()    # singleton
 
-        event_registry.register("event1", Event1)
-        event_registry.register("event2", Event2)
+        event_registry.add("event1", Event1)
+        event_registry.add("event2", Event2)
 
         event_registry = EventRegistry()  # singleton
 

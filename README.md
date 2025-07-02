@@ -114,16 +114,17 @@ In order to help `event_type` management, a basic `EventRegistry` is provided to
 class Event1(Event):
     def my_value1(self) -> int:
         return self.content
-    
+
+
 class Event2(Event):
     def my_value2(self) -> int:
         return self.content
 
 
-event_registry = EventRegistry()    # singleton
+event_registry = EventRegistry()  # singleton
 
-event_registry.register("event1", Event1)
-event_registry.register("event2", Event2)
+event_registry.add("event1", Event1)
+event_registry.add("event2", Event2)
 
 generic_event1 = Event(content=1, event_type="event1")
 generic_event2 = Event(content=2, event_type="event2")
