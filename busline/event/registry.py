@@ -1,84 +1,64 @@
 from dataclasses import dataclass, field
 from typing import Dict, Type
 from functools import wraps
-
-from busline.event.event import Event
-
-class _Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
+from busline.event.event import Event, EventPayload
+from busline.utils.singleton import Singleton
 
 
-@dataclass
-class EventRegistry(metaclass=_Singleton):
+class EventRegistry(metaclass=Singleton):
     """
     Registry to manage different event types
 
     Author: Nicola Ricciardi
     """
 
-    associations: Dict[str, Type[Event]] = field(default_factory=dict)
+    __associations: Dict[str, Type[EventPayload]] = {}
+
+    @property
+    def associations(self) -> Dict[str, Type[EventPayload]]:
+        return self.__associations
 
     def remove(self, event_type: str):
         """
         Remove an event type association
         """
 
-        self.associations.pop(event_type)
+        self.__associations.pop(event_type)
 
-    def add(self, event_type: str, event_class: Type[Event]):
+    def add(self, event_type: str, event_payload_class: Type[EventPayload]):
         """
         Add a new association between an event type and an event class
         """
 
-        self.associations[event_type] = event_class
+        self.__associations[event_type] = event_payload_class
 
-    def retrive_class(self, event) -> Type[Event]:
+    def retrieve_class(self, event_type: str) -> Type[EventPayload]:
         """
-        Retrive event class of event input based on saved associations and given event type
+        Retrieve event class of event input based on saved associations and given event type
 
         KeyError is raised if no association is found
         """
 
-        return self.associations[event.event_type]
+        return self.__associations[event_type]
 
-    def convert(self, event: Event, raise_on_miss: bool = True) -> Event:
+    def build(self, event_type: str, format_type: str, serialized_payload: bytes) -> EventPayload:
         """
-        Convert a generic event, auto-building the right event class based on event type.
-
-        If raise_on_miss=True, a KeyError exception is raised. Otherwise, input is returned in output.
+        Build EventPayload from Event, raises a KeyError if there is not the association in registry
         """
 
-        if event.event_type not in self.associations and not raise_on_miss:
-            return event
+        event_class: Type[EventPayload] = self.retrieve_class(event_type)
 
-        event_class: Type[Event] = self.retrive_class(event)
-
-        return event_class.from_event(event)
+        return event_class.deserialize(format_type, serialized_payload)
 
 
 
-def registry(cls: Type[Event]):
+def registry(cls: Type[EventPayload]):
 
     event_type: str = cls.__name__
 
-    # add event to registry
+    # add event payload to registry
     reg = EventRegistry()
     reg.add(event_type, cls)
-
-    original_post_init = getattr(cls, '__post_init__', None)
-
-    @wraps(cls)
-    def new_post_init(self):
-        self.event_type = event_type
-        if original_post_init:
-            original_post_init(self)
-
-    cls.__post_init__ = new_post_init
 
     return cls
 

@@ -1,9 +1,19 @@
-import json
 import uuid
-from typing import Any, Self
 import datetime
 from dataclasses import dataclass, field
 from typing import Optional
+from abc import ABC
+from collections.abc import Buffer
+from busline.utils.serde import SerdableMixin
+
+
+@dataclass(frozen=True)
+class EventPayload(SerdableMixin, ABC):
+    """
+    Event payload for an event, it must be serializable and deserializable
+
+    Author: Nicola Ricciardi
+    """
 
 
 @dataclass(frozen=True)
@@ -14,34 +24,12 @@ class Event:
     Author: Nicola Ricciardi
     """
 
-    identifier: str = field(default=str(uuid.uuid4()))
-    content: Any = field(default=None)
-    content_type: Optional[str] = field(default=None)
+    identifier: str = field(default_factory=lambda: str(uuid.uuid4()))
+    payload: Optional[EventPayload] = field(default=None)
     event_type: Optional[str] = field(default=None)
     timestamp: float = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).timestamp())
     metadata: dict = field(default_factory=dict)
 
-    @classmethod
-    def from_json(cls, json_str: str) -> Self:
-        """
-        Build event object from JSON string
-        """
-
-        return cls(**json.loads(json_str))
-
-    @classmethod
-    def from_event(cls, event: 'Event') -> Self:
-        """
-        Build event object based on Event (base) class.
-
-        This method can be useful when Event class is inherited and an event registry is used.
-        """
-
-        return cls(
-            identifier=event.identifier,
-            content=event.content,
-            content_type=event.content_type,
-            event_type=event.event_type,
-            timestamp=event.timestamp,
-            metadata=event.metadata
-        )
+    def __post_init__(self):
+        if self.event_type is None and self.payload is not None:
+            object.__setattr__(self, 'event_type', self.payload.__class__.__name__)

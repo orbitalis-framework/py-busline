@@ -1,5 +1,3 @@
-from busline.local.subscriber.local_subscriber import LocalEventBusSubscriberfrom busline.local.eventbus.local_eventbus import LocalEventBus
-
 # Busline for Python
 
 Agnostic eventbus for Python.
