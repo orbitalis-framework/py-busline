@@ -108,6 +108,7 @@ class TestEventRegistry(unittest.TestCase):
     def test_avro_payload(self):
 
         payload = MockUserCreationAvroPayload("email", "password")
+        event = payload.into_event()
 
         format_type, serialized_payload = payload.serialize()
 

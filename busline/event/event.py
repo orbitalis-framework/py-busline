@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 import datetime
 from dataclasses import dataclass, field
@@ -15,8 +17,13 @@ class EventPayload(SerdableMixin, ABC):
     Author: Nicola Ricciardi
     """
 
+    def into_event(self, /, **kwargs) -> Event:
+        return Event(
+            payload=self,
+            **kwargs
+        )
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Event:
     """
     Event publishable in an eventbus
