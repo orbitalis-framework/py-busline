@@ -1,7 +1,6 @@
-from typing import Callable, Optional, Self, override
+from typing import Callable, Self, override
 from dataclasses import dataclass, field
-from busline.client.publisher.publisher import Publisher
-from busline.client.subscriber.event_handler.closure_event_handler import ClosureEventHandler
+from busline.client.subscriber.topic_subscriber.event_handler.callback_event_handler import CallbackEventHandler
 from busline.event.event import Event
 from busline.client.pubsub_client import PubSubClient, PubSubClientBuilder, PubTopicSubClient
 from busline.local.eventbus.eventbus import EventBus
@@ -51,7 +50,7 @@ class LocalPubSubClientBuilder(PubSubClientBuilder):
         self.base_client.subscribers.append(
             LocalEventBusSubscriber(
                 eventbus=self.eventbus,
-                fallback_event_handler=ClosureEventHandler(closure)
+                fallback_event_handler=CallbackEventHandler(closure)
             )
         )
 
@@ -93,7 +92,7 @@ class LocalPubTopicSubClientBuilder(PubSubClientBuilder):
         self.base_client.subscribers.append(
             LocalEventBusSubscriber(
                 eventbus=self.eventbus,
-                fallback_event_handler=ClosureEventHandler(closure)
+                fallback_event_handler=CallbackEventHandler(closure)
             )
         )
 

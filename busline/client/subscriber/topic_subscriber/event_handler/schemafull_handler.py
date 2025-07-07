@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from busline.client.subscriber.event_handler.event_handler import EventHandler
-from busline.event.event import Event
+from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
 
 
 class SchemafullEventHandler(EventHandler, ABC):

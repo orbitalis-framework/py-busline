@@ -4,7 +4,7 @@ from typing import Optional, override, List, Self
 
 from busline.client.client import EventBusClient
 from busline.client.publisher.publisher import Publisher
-from busline.client.subscriber.event_handler.event_handler import EventHandler
+from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
 from busline.client.subscriber.topic_subscriber import TopicSubscriber
 from busline.event.event import Event
 from busline.client.subscriber.subscriber import Subscriber

@@ -1,7 +1,7 @@
 import unittest
 
 from busline.client.multiclient import EventBusMultiClient
-from busline.client.subscriber.event_handler.closure_event_handler import ClosureEventHandler
+from busline.client.subscriber.topic_subscriber.event_handler.callback_event_handler import CallbackEventHandler
 from busline.local.eventbus.async_local_eventbus import AsyncLocalEventBus
 from busline.local.eventbus.local_eventbus import LocalEventBus
 from busline.local.local_pubsub_client import LocalPubSubClientBuilder
@@ -29,7 +29,7 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
         subscriber = LocalEventBusSubscriber(
             eventbus=local_eventbus_instance1,
-            fallback_event_handler=ClosureEventHandler(callback)
+            fallback_event_handler=CallbackEventHandler(callback)
         )
         publisher = LocalEventBusPublisher(eventbus=local_eventbus_instance2)
 
@@ -89,14 +89,14 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
             received_event += 1
 
         subscriber = LocalEventBusSubscriber(
-            fallback_event_handler=ClosureEventHandler(callback),
+            fallback_event_handler=CallbackEventHandler(callback),
             eventbus=LocalEventBus()
         )
 
         await subscriber.connect()
 
         await subscriber.subscribe("t1")
-        await subscriber.subscribe("t2", handler=ClosureEventHandler(callback))
+        await subscriber.subscribe("t2", handler=CallbackEventHandler(callback))
 
         await subscriber.notify("t1", Event())
 
@@ -141,7 +141,7 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
 
         await multi_client.connect()
 
-        await multi_client.subscribe("topic", handler=ClosureEventHandler(on_event_callback))
+        await multi_client.subscribe("topic", handler=CallbackEventHandler(on_event_callback))
 
         await multi_client.publish("topic", Event())
 
