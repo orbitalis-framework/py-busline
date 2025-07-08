@@ -1,12 +1,38 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import List, override
+
 from busline.event.event import Event
 from busline.client.eventbus_connector import EventBusConnector
 
 
+class PublishMixin(ABC):
+
+    @abstractmethod
+    async def publish(self, topic: str, event: Event, **kwargs):
+        raise NotImplemented()
+
+    async def multi_publish(self, topics: List[str], event: Event, parallelize: bool = True, **kwargs):
+        """
+        Publish the same event in more topics
+        """
+
+        logging.info(f"{self}: publish event {event.identifier} in {len(topics)} topics (parallelization: {parallelize})")
+
+        if parallelize:
+            tasks = [self.publish(topic, event, **kwargs) for topic in topics]
+            await asyncio.gather(*tasks)
+
+        else:
+            for topic in topics:
+                await self.publish(topic, event, **kwargs)
+
+
+
 @dataclass
-class Publisher(EventBusConnector, ABC):
+class Publisher(EventBusConnector, PublishMixin, ABC):
     """
     Abstract class which can be implemented by your components which must be able to publish on eventbus
 
@@ -26,6 +52,7 @@ class Publisher(EventBusConnector, ABC):
         :return:
         """
 
+    @override
     async def publish(self, topic: str, event: Event, **kwargs):
         """
         Publish on topic the event

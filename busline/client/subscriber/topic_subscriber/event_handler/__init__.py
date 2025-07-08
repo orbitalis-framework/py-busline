@@ -1,5 +1,5 @@
 import inspect
-from typing import TypeVar, Callable, Coroutine, Optional, Dict
+from typing import TypeVar, Callable, Coroutine, Optional, Dict, List
 
 from busline.client.subscriber.topic_subscriber.event_handler.callback_event_handler import CallbackEventHandler, \
     SchemafullCallbackEventHandler
@@ -7,9 +7,6 @@ from busline.event.event import Event
 
 
 F = TypeVar('F', bound=Callable[[str, Event], Coroutine])
-
-
-
 
 
 def event_handler(func):
@@ -46,7 +43,11 @@ def event_handler(func):
     return decorator(func)
 
 
-def schemafull_event_handler(schema: Dict):
+def schemafull_event_handler(schemas: List[Dict] | Dict):
+
+    if isinstance(schemas, dict):
+        schemas = [schemas]
+
     def decorator(method_or_func):
         if not inspect.iscoroutinefunction(method_or_func):
             raise TypeError("Event handler must be an async function or method.")
@@ -55,7 +56,7 @@ def schemafull_event_handler(schema: Dict):
 
         if not is_method:
             # standalone async function
-            return SchemafullCallbackEventHandler(schema=schema, on_event_callback=method_or_func)
+            return SchemafullCallbackEventHandler(schemas=schemas, on_event_callback=method_or_func)
 
         # method in a class
         method_name = method_or_func.__name__
@@ -69,7 +70,7 @@ def schemafull_event_handler(schema: Dict):
                 async def callback(topic: str, event: Event):
                     await method_or_func(instance, topic, event)
 
-                handler = SchemafullCallbackEventHandler(schema=schema, on_event_callback=callback)
+                handler = SchemafullCallbackEventHandler(schemas=schemas, on_event_callback=callback)
 
                 # replace the method with the handler
                 setattr(instance, method_name, handler)

@@ -2,16 +2,16 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import Optional, override, List, Self
 
-from busline.client.client import EventBusClient
-from busline.client.publisher.publisher import Publisher
+from busline.client.eventbus_connector import EventBusConnector
+from busline.client.publisher.publisher import Publisher, PublishMixin
 from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
-from busline.client.subscriber.topic_subscriber import TopicSubscriber
+from busline.client.subscriber.topic_subscriber.topic_subscriber import TopicSubscriber
 from busline.event.event import Event
-from busline.client.subscriber.subscriber import Subscriber
+from busline.client.subscriber.subscriber import Subscriber, SubscribeMixin
 
 
 @dataclass
-class PubSubClient(EventBusClient):
+class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
     """
     Eventbus client which should used by components which wouldn't be a publisher/subscriber, but they need them
 
@@ -69,6 +69,13 @@ class PubSubClient(EventBusClient):
         await asyncio.gather(*[
             publisher.publish(topic, event, **kwargs) for publisher in self.publishers
         ])
+
+    @override
+    async def multi_publish(self, topics: List[str], event: Event, parallelize: bool = True, **kwargs):
+        await asyncio.gather(*[
+            publisher.multi_publish(topics, event, **kwargs) for publisher in self.publishers
+        ])
+
 
     @override
     async def subscribe(self, topic: str, **kwargs):

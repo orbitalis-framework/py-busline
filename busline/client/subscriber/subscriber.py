@@ -1,14 +1,25 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, override
 
 from busline.client.eventbus_connector import EventBusConnector
 from busline.event.event import Event
 
 
+class SubscribeMixin(ABC):
+    @abstractmethod
+    async def subscribe(self, topic: str, **kwargs):
+        raise NotImplemented()
+
+    @abstractmethod
+    async def unsubscribe(self, topic: Optional[str] = None, **kwargs):
+        raise NotImplemented()
+
+
+
 @dataclass
-class Subscriber(EventBusConnector, ABC):
+class Subscriber(EventBusConnector, SubscribeMixin, ABC):
     """
     Abstract class which can be implemented by your components which must be able to subscribe on eventbus
 
@@ -50,6 +61,7 @@ class Subscriber(EventBusConnector, ABC):
         :return:
         """
 
+    @override
     async def subscribe(self, topic: str, **kwargs):
         """
         Subscribe to topic
@@ -63,6 +75,7 @@ class Subscriber(EventBusConnector, ABC):
         await self._internal_subscribe(topic, **kwargs)
         await self._on_subscribed(topic, **kwargs)
 
+    @override
     async def unsubscribe(self, topic: Optional[str] = None, **kwargs):
         """
         Unsubscribe to topic

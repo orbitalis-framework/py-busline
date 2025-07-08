@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional, override
 
-from busline.client.subscriber.topic_subscriber import TopicSubscriber
+from busline.client.subscriber.topic_subscriber.topic_subscriber import TopicSubscriber
 from busline.local.eventbus.eventbus import EventBus
 from busline.exceptions import EventBusClientNotConnected
 
