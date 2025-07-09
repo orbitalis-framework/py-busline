@@ -14,12 +14,12 @@ class PublishMixin(ABC):
     async def publish(self, topic: str, event: Event, **kwargs):
         raise NotImplemented()
 
-    async def multi_publish(self, topics: List[str], event: Event, parallelize: bool = True, **kwargs):
+    async def multi_publish(self, topics: List[str], event: Event, /, parallelize: bool = True, **kwargs):
         """
         Publish the same event in more topics
         """
 
-        logging.info(f"{self}: publish event {event.identifier} in {len(topics)} topics (parallelization: {parallelize})")
+        logging.debug(f"{self}: publish event {event.identifier} in {len(topics)} topics (parallelization: {parallelize})")
 
         if parallelize:
             tasks = [self.publish(topic, event, **kwargs) for topic in topics]

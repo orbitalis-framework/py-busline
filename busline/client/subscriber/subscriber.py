@@ -1,7 +1,8 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, override
+from typing import Optional, override, List
 
 from busline.client.eventbus_connector import EventBusConnector
 from busline.event.event import Event
@@ -12,9 +13,31 @@ class SubscribeMixin(ABC):
     async def subscribe(self, topic: str, **kwargs):
         raise NotImplemented()
 
+    async def multi_subscribe(self, topics: List[str], /, parallelize: bool = True, **kwargs):
+        logging.debug(f"{self}: subscribe to {len(topics)} topics (parallelization: {parallelize})")
+
+        if parallelize:
+            tasks = [self.subscribe(topic, **kwargs) for topic in topics]
+            await asyncio.gather(*tasks)
+
+        else:
+            for topic in topics:
+                await self.subscribe(topic, **kwargs)
+
     @abstractmethod
     async def unsubscribe(self, topic: Optional[str] = None, **kwargs):
         raise NotImplemented()
+
+    async def multi_unsubscribe(self, topics: List[str], /, parallelize: bool = True, **kwargs):
+        logging.debug(f"{self}: unsubscribe from {len(topics)} topics (parallelization: {parallelize})")
+
+        if parallelize:
+            tasks = [self.unsubscribe(topic, **kwargs) for topic in topics]
+            await asyncio.gather(*tasks)
+
+        else:
+            for topic in topics:
+                await self.unsubscribe(topic, **kwargs)
 
 
 
