@@ -1,5 +1,6 @@
-from typing import Callable, Coroutine, Dict, override, List
-from dataclasses import dataclass
+import inspect
+from typing import Callable, Coroutine, Dict, override, List, Any, Awaitable
+from dataclasses import dataclass, field
 
 from busline.client.subscriber.topic_subscriber.event_handler.schemafull_handler import SchemafullEventHandler
 from busline.event.event import Event
@@ -14,10 +15,23 @@ class CallbackEventHandler(EventHandler):
     Author: Nicola Ricciardi
     """
 
-    on_event_callback: Callable[[str, Event], Coroutine]
+    on_event_callback: Callable[[str, Event], Any]
+
+    __actual_async_on_event_callback: Callable[[str, Event], Awaitable] = field(init=False)
+
+    def __post_init__(self):
+        if not inspect.iscoroutinefunction(self.on_event_callback):
+
+            async def async_wrapper(topic: str, event: Event) -> Callable[[str, Event], Awaitable]:
+                return self.on_event_callback(topic, event)
+
+            self.__actual_async_on_event_callback = async_wrapper
+
+        else:
+            self.__actual_async_on_event_callback = self.on_event_callback
 
     async def handle(self, topic: str, event: Event):
-        await self.on_event_callback(topic, event)
+        await self.__actual_async_on_event_callback(topic, event)
 
 
 @dataclass
