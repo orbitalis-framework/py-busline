@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import uuid
-import datetime
+from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Generic, TypeVar
 from abc import ABC
-from collections.abc import Buffer
 from busline.utils.serde import SerdableMixin
 
 
@@ -34,10 +33,14 @@ class Event(Generic[P]):
     Author: Nicola Ricciardi
     """
 
+    # TODO:
+    # content_type
+    # publisher_identifier
+
     identifier: str = field(default_factory=lambda: str(uuid.uuid4()))
     payload: Optional[P] = field(default=None)
     event_type: Optional[str] = field(default=None)
-    timestamp: float = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).timestamp())
+    timestamp: datetime = field(default_factory=lambda: datetime.now())
     metadata: dict = field(default_factory=dict)
 
     def __post_init__(self):

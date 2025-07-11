@@ -2,7 +2,9 @@ from abc import abstractmethod
 from collections.abc import Buffer
 from typing import Self, Tuple
 from dataclasses import dataclass, asdict
+
 from dataclasses_avroschema import AvroModel
+
 from busline.event.event import EventPayload
 from busline.utils.serde import SerdableMixin
 
