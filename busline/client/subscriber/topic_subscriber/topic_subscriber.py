@@ -9,7 +9,7 @@ from busline.event.event import Event
 from busline.exceptions import EventHandlerNotFound
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class TopicSubscriber(Subscriber, ABC):
     """
     Handles different topic events using ad hoc handlers defined by user,
@@ -32,7 +32,7 @@ class TopicSubscriber(Subscriber, ABC):
     @override
     async def _on_subscribing(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
 
-        if self.fallback_event_handler is None:
+        if self.fallback_event_handler is None and handler is None:
             if self.event_handler_always_required:
                 raise EventHandlerNotFound()
             else:

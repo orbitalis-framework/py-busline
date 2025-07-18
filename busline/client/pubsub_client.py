@@ -2,6 +2,8 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import Optional, override, List, Self
 
+from docutils.nodes import subscript
+
 from busline.client.eventbus_connector import EventBusConnector
 from busline.client.publisher.publisher import Publisher, PublishMixin
 from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
@@ -10,7 +12,7 @@ from busline.event.event import Event
 from busline.client.subscriber.subscriber import Subscriber, SubscribeMixin
 
 
-@dataclass
+@dataclass(kw_only=True, eq=False)
 class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
     """
     Eventbus client which should used by components which wouldn't be a publisher/subscriber, but they need them
@@ -32,11 +34,17 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
         if subscriber is not None:
             subscribers = [subscriber]
 
-        return cls(publishers, subscribers)
+        return cls(
+            publishers=publishers,
+            subscribers=subscribers
+        )
 
     @classmethod
     def from_pubsub_client(cls, client: Self) -> Self:
-        return cls(client.publishers.copy(), client.subscribers.copy())
+        return cls(
+            publishers=client.publishers.copy(),
+            subscribers=client.subscribers.copy()
+        )
 
     @override
     async def connect(self):
@@ -128,7 +136,10 @@ class PubSubClientBuilder:
     """
 
     base_client: PubSubClient = field(
-        default_factory=lambda: PubSubClient([], []),
+        default_factory=lambda: PubTopicSubClient(
+            publishers=[],
+            subscribers=[]
+        ),
         kw_only=True
     )
 
@@ -163,11 +174,6 @@ class PubTopicSubClientBuilder(PubSubClientBuilder):
 
     Author: Nicola Ricciardi
     """
-
-    base_client: PubTopicSubClient = field(
-        default_factory=lambda: PubTopicSubClient([], []),
-        kw_only=True
-    )
 
     @override
     def build(self) -> PubTopicSubClient:

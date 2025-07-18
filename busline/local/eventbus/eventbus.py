@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 from busline.exceptions import TopicNotFound
 from busline.client.subscriber.subscriber import Subscriber
 from busline.event.event import Event
@@ -14,14 +15,10 @@ class EventBus(ABC):
     Author: Nicola Ricciardi
     """
 
-    subscriptions: Dict[str, List[Subscriber]] = field(default_factory=dict)
-
-    def __post_init__(self):
-
-        self.reset_subscriptions()
+    subscriptions: Dict[str, Set[Subscriber]] = field(default_factory=lambda: defaultdict(set), init=False)
 
     def reset_subscriptions(self):
-        self.subscriptions = {}
+        self.subscriptions = defaultdict(set)
 
     @property
     def topics(self) -> List[str]:
@@ -36,8 +33,7 @@ class EventBus(ABC):
         :return:
         """
 
-        self.subscriptions.setdefault(topic, [])
-        self.subscriptions[topic].append(subscriber)
+        self.subscriptions[topic].add(subscriber)
 
     def remove_subscriber(self, subscriber: Subscriber, topic: Optional[str] = None, raise_if_topic_missed: bool = False):
         """
@@ -62,12 +58,12 @@ class EventBus(ABC):
     def _topic_names_match(self, t1: str, t2: str):
         return t1 == t2
 
-    def _get_topic_subscriptions(self, topic: str) -> List[Subscriber]:
+    def _get_topic_subscriptions(self, topic: str) -> Set[Subscriber]:
 
-        topic_subscriptions: List[Subscriber] = []
+        topic_subscriptions: Set[Subscriber] = set()
         for t, subs in self.subscriptions.items():
             if self._topic_names_match(t, topic):
-                topic_subscriptions.extend(subs)
+                topic_subscriptions = topic_subscriptions.union(subs)
 
         return topic_subscriptions
 

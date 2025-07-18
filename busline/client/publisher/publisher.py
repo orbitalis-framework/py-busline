@@ -31,7 +31,7 @@ class PublishMixin(ABC):
 
 
 
-@dataclass
+@dataclass(eq=False)
 class Publisher(EventBusConnector, PublishMixin, ABC):
     """
     Abstract class which can be implemented by your components which must be able to publish on eventbus
@@ -39,8 +39,8 @@ class Publisher(EventBusConnector, PublishMixin, ABC):
     Author: Nicola Ricciardi
     """
 
-    def __repr__(self) -> str:
-        return f"Publisher({self.identifier})"
+    def __str__(self) -> str:
+        return f"Publisher('{self.identifier}')"
 
     @abstractmethod
     async def _internal_publish(self, topic: str, event: Event, **kwargs):

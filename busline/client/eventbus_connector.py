@@ -12,7 +12,7 @@ class EventBusConnector(ABC):
     Author: Nicola Ricciardi
     """
 
-    identifier: str = field(default=str(uuid4()))
+    identifier: str = field(default_factory=lambda: str(uuid4()))
 
 
     @abstractmethod
@@ -30,3 +30,9 @@ class EventBusConnector(ABC):
 
         :return:
         """
+
+    def __eq__(self, other):
+        return self.identifier == other.identifier
+
+    def __hash__(self):
+        return hash(self.identifier)

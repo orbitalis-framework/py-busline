@@ -8,7 +8,6 @@ from abc import ABC
 from busline.utils.serde import SerdableMixin
 
 
-@dataclass(frozen=True)
 class EventPayload(SerdableMixin, ABC):
     """
     Event payload for an event, it must be serializable and deserializable

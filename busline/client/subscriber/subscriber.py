@@ -41,7 +41,7 @@ class SubscribeMixin(ABC):
 
 
 
-@dataclass
+@dataclass(eq=False)
 class Subscriber(EventBusConnector, SubscribeMixin, ABC):
     """
     Abstract class which can be implemented by your components which must be able to subscribe on eventbus
@@ -49,8 +49,8 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
     Author: Nicola Ricciardi
     """
 
-    def __repr__(self) -> str:
-        return f"Subscriber({self.identifier})"
+    def __str__(self) -> str:
+        return f"Subscriber('{self.identifier}')"
 
     @abstractmethod
     async def on_event(self, topic: str, event: Event):

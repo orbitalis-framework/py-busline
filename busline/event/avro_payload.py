@@ -11,7 +11,6 @@ from busline.utils.serde import SerdableMixin
 AVRO_CONTENT_TYPE = "avro"
 
 
-@dataclass(frozen=True)
 class AvroEventPayload(EventPayload, SerdableMixin, AvroModel):
 
 

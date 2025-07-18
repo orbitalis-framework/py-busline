@@ -1,10 +1,9 @@
 import unittest
 
-from busline.client.multiclient import EventBusMultiClient
 from busline.client.subscriber.topic_subscriber.event_handler.callback_event_handler import CallbackEventHandler
 from busline.local.eventbus.async_local_eventbus import AsyncLocalEventBus
 from busline.local.eventbus.local_eventbus import LocalEventBus
-from busline.local.local_pubsub_client import LocalPubSubClientBuilder
+from busline.local.local_pubsub_client import LocalPubTopicSubClientBuilder
 from busline.local.publisher.local_publisher import LocalEventBusPublisher
 from busline.event.event import Event
 from busline.local.subscriber.local_subscriber import LocalEventBusSubscriber
@@ -36,48 +35,85 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await subscriber.connect()
         await publisher.connect()
 
-        await subscriber.subscribe("test")
+        await subscriber.subscribe("tests")
 
-        await publisher.publish("test", event)
+        await publisher.publish("tests", event)
 
         self.assertIs(event, received_event)
 
         await subscriber.unsubscribe()
         received_event = None
 
-        await publisher.publish("test", event)
+        await publisher.publish("tests", event)
 
         self.assertIs(received_event, None)
-
 
     async def test_local_client(self):
         received_event = None
         event = Event()
 
-        def client_callback(topic_name: str, e: Event):
+        def fallback_client_callback(topic_name: str, e: Event):
             nonlocal received_event
 
             received_event = e
 
-        client = LocalPubSubClientBuilder()\
-                    .with_default_publisher()\
-                    .with_closure_subscriber(client_callback)\
-                    .build()
+
+        client = LocalPubTopicSubClientBuilder().with_subscriber(
+            LocalEventBusSubscriber(
+                eventbus=LocalEventBus(),
+                fallback_event_handler=CallbackEventHandler(fallback_client_callback)
+            )
+        ).with_publisher(
+            LocalEventBusPublisher(eventbus=LocalEventBus())
+        ).build()
 
         await client.connect()
 
-        await client.subscribe("test")
+        await client.subscribe("tests")
 
-        await client.publish("test", event)
+        await client.publish("tests", event)
 
         self.assertIs(event, received_event)
 
         await client.unsubscribe()
         received_event = None
 
-        await client.publish("test", event)
+        await client.publish("tests", event)
 
         self.assertIs(received_event, None)
+
+        test = False
+
+        def client_callback(topic_name: str, e: Event):
+            nonlocal test
+
+            test = True
+
+        await client.subscribe("tests", handler=CallbackEventHandler(client_callback))
+
+        await client.publish("tests", event)
+
+        self.assertTrue(test)
+
+
+    async def test_default_builder(self):
+        client = LocalPubTopicSubClientBuilder.default()
+
+        await client.connect()
+
+        test = False
+
+        def client_callback(topic_name: str, e: Event):
+            nonlocal test
+
+            test = True
+
+        await client.subscribe("tests", handler=CallbackEventHandler(client_callback))
+
+        await client.publish("tests", Event())
+
+        self.assertTrue(test)
+
 
     async def test_mhs(self):
 
@@ -96,6 +132,8 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await subscriber.connect()
 
         await subscriber.subscribe("t1")
+        await subscriber.subscribe("t1")
+        await subscriber.subscribe("t2", handler=CallbackEventHandler(callback))
         await subscriber.subscribe("t2", handler=CallbackEventHandler(callback))
 
         await subscriber.notify("t1", Event())
@@ -107,47 +145,12 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(received_event, 2)
 
         await subscriber.unsubscribe()
+        await subscriber.unsubscribe()
 
         await subscriber.notify("t1", Event())
         await subscriber.notify("t2", Event())
 
         self.assertEqual(received_event, 2)
-
-    async def test_multi_client(self):
-        local_eventbus_instance1 = AsyncLocalEventBus()  # not singleton
-        local_eventbus_instance2 = AsyncLocalEventBus()  # not singleton
-
-        n_events: int = 0
-
-        def on_event_callback(topic_name: str, e: Event):
-            nonlocal n_events
-
-            n_events += 1
-
-        client1 = LocalPubSubClientBuilder(local_eventbus_instance1)\
-                    .with_default_publisher()\
-                    .with_closure_subscriber(lambda t, e: ...)\
-                    .build()
-
-        client2 = LocalPubSubClientBuilder(local_eventbus_instance2)\
-                    .with_default_publisher()\
-                    .with_closure_subscriber(lambda t, e: ...)\
-                    .build()
-
-        multi_client = EventBusMultiClient([
-            client1,
-            client2
-        ])
-
-        await multi_client.connect()
-
-        await multi_client.subscribe("topic", handler=CallbackEventHandler(on_event_callback))
-
-        await multi_client.publish("topic", Event())
-
-        await multi_client.disconnect()
-
-        self.assertEqual(n_events, 2)
 
 
 
