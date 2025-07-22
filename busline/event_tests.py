@@ -1,16 +1,16 @@
 import json
 import unittest
-from typing import Type, Self, Tuple, override
+from typing import Self, Tuple, override
 from dataclasses import dataclass
 
-from busline.event.avro_payload import AvroEventPayload
-from busline.event.event import Event, EventPayload
-from busline.event.json_payload import JsonEventPayload
-from busline.event.registry import EventRegistry, registry
+from busline.event.message.avro_message import AvroMessageMixin
+from busline.event.event import Event, Message
+from busline.event.message.json_message import JsonMessageMixin
+from busline.event.registry import EventRegistry, add_to_registry
 
 
 @dataclass(frozen=True)
-class EventPayload1(EventPayload):
+class EventPayload1(Message):
 
     value: int
 
@@ -25,8 +25,8 @@ class EventPayload1(EventPayload):
         return EventPayload1(int.from_bytes(payload))
 
 @dataclass(frozen=True)
-@registry
-class EventPayload2(EventPayload):
+@add_to_registry
+class EventPayload2(Message):
 
     value: int
 
@@ -41,7 +41,7 @@ class EventPayload2(EventPayload):
         return EventPayload2(int.from_bytes(payload))
 
 @dataclass(frozen=True)
-class MockUserCreationJsonPayload(JsonEventPayload):
+class MockUserCreationJsonPayload(JsonMessageMixin):
 
     email: str
     password: str
@@ -55,7 +55,7 @@ class MockUserCreationJsonPayload(JsonEventPayload):
 
 
 @dataclass(frozen=True)
-class MockUserCreationAvroPayload(AvroEventPayload):
+class MockUserCreationAvroPayload(AvroMessageMixin):
     email: str
     password: str
 

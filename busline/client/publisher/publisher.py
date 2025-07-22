@@ -1,11 +1,14 @@
 import asyncio
 import logging
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, override
+from datetime import datetime
+from typing import List, override, Optional
 
-from busline.event.event import Event
+from busline.event.event import Event, RegistryBasedEvent
 from busline.client.eventbus_connector import EventBusConnector
+from busline.event.message import Message
 
 
 class PublishMixin(ABC):
@@ -46,42 +49,35 @@ class Publisher(EventBusConnector, PublishMixin, ABC):
     async def _internal_publish(self, topic: str, event: Event, **kwargs):
         """
         Actual publish on topic the event
-
-        :param topic:
-        :param event:
-        :return:
         """
 
     @override
-    async def publish(self, topic: str, event: Event, **kwargs):
+    async def publish(self, topic: str, message: Optional[Message] = None, **kwargs) -> Event:
         """
-        Publish on topic the event
+        Publish on topic the message and return the generated event
+        """
 
-        :param topic:
-        :param event:
-        :return:
-        """
+        event = Event(
+            payload=message,
+            identifier=str(uuid.uuid4()),
+            timestamp=datetime.now(),
+            publisher_identifier=self.identifier
+        )
 
         logging.info(f"{self}: publish on {topic} -> {event}")
         await self.on_publishing(topic, event, **kwargs)
         await self._internal_publish(topic, event, **kwargs)
         await self.on_published(topic, event, **kwargs)
 
+        return event
+
 
     async def on_publishing(self, topic: str, event: Event, **kwargs):
         """
         Callback called on publishing start
-
-        :param topic:
-        :param event:
-        :return:
         """
 
     async def on_published(self, topic: str, event: Event, **kwargs):
         """
         Callback called on publishing end
-
-        :param topic:
-        :param event:
-        :return:
         """

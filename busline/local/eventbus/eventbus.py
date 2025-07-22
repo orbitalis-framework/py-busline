@@ -17,12 +17,12 @@ class EventBus(ABC):
 
     subscriptions: Dict[str, Set[Subscriber]] = field(default_factory=lambda: defaultdict(set), init=False)
 
-    def reset_subscriptions(self):
-        self.subscriptions = defaultdict(set)
-
     @property
     def topics(self) -> List[str]:
         return list(self.subscriptions.keys())
+
+    def reset_subscriptions(self):
+        self.subscriptions = defaultdict(set)
 
     def add_subscriber(self, topic: str, subscriber: Subscriber):
         """

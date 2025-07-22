@@ -2,7 +2,7 @@ from typing import List
 import asyncio
 from dataclasses import dataclass
 from busline.event.event import Event
-from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
+from busline.client.subscriber.event_handler.event_handler import EventHandler
 
 
 @dataclass

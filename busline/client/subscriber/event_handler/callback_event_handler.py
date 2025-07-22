@@ -2,9 +2,9 @@ import inspect
 from typing import Callable, Coroutine, Dict, override, List, Any, Awaitable
 from dataclasses import dataclass, field
 
-from busline.client.subscriber.topic_subscriber.event_handler.schemafull_handler import SchemafullEventHandler
+from busline.client.subscriber.event_handler.schemafull_handler import SchemafullEventHandler
 from busline.event.event import Event
-from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
+from busline.client.subscriber.event_handler.event_handler import EventHandler
 
 
 @dataclass

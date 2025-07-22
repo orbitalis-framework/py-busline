@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass(kw_only=True, eq=False)
-class LocalEventBusPublisher(Publisher):
+class LocalPublisher(Publisher):
     """
     Publisher which works with local eventbus, this class can be initialized and used stand-alone
 
@@ -21,12 +21,12 @@ class LocalEventBusPublisher(Publisher):
 
     @override
     async def connect(self):
-        logging.info(f"publisher {self.identifier} connecting...")
+        logging.info(f"{self}: connecting...")
         self.connected = True
 
     @override
     async def disconnect(self):
-        logging.info(f"publisher {self.identifier} disconnecting...")
+        logging.info(f"{self}: disconnecting...")
         self.connected = False
 
     @override
@@ -36,3 +36,9 @@ class LocalEventBusPublisher(Publisher):
             raise EventBusClientNotConnected()
 
         await self.eventbus.put_event(topic_name, event)
+
+    def __eq__(self, other):
+        return self.identifier == other.identifier
+
+    def __hash__(self):
+        return hash(self.identifier)

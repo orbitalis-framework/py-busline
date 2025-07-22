@@ -1,7 +1,7 @@
 import inspect
-from typing import TypeVar, Callable, Coroutine, Optional, Dict, List
+from typing import TypeVar, Callable, Coroutine, Dict, List
 
-from busline.client.subscriber.topic_subscriber.event_handler.callback_event_handler import CallbackEventHandler, \
+from busline.client.subscriber.event_handler.callback_event_handler import CallbackEventHandler, \
     SchemafullCallbackEventHandler
 from busline.event.event import Event
 

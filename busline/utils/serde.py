@@ -11,7 +11,8 @@ class SerializableMixin(ABC):
     @abstractmethod
     def serialize(self) -> Tuple[str, bytes]:
         """
-        Serialize itself and return the format as string
+        Serialize itself and return (format type, serialized data).
+        For example, ("json", "{...}").
         """
 
         raise NotImplemented()
@@ -24,7 +25,7 @@ class DeserializableMixin(ABC):
 
     @classmethod
     @abstractmethod
-    def deserialize(cls, payload_type: str, payload: bytes) -> Self:
+    def deserialize(cls, format_type: str, serialized_data: bytes) -> Self:
         raise NotImplemented()
 
 

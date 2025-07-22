@@ -1,15 +1,14 @@
 import asyncio
+import logging
 from dataclasses import dataclass, field
-from typing import Optional, override, List, Self
-
-from docutils.nodes import subscript
-
+from typing import Optional, override, List, Self, Awaitable, Callable
 from busline.client.eventbus_connector import EventBusConnector
 from busline.client.publisher.publisher import Publisher, PublishMixin
-from busline.client.subscriber.topic_subscriber.event_handler.event_handler import EventHandler
-from busline.client.subscriber.topic_subscriber.topic_subscriber import TopicSubscriber
+from busline.client.subscriber.event_handler import CallbackEventHandler
+from busline.client.subscriber.event_handler.event_handler import EventHandler
 from busline.event.event import Event
 from busline.client.subscriber.subscriber import Subscriber, SubscribeMixin
+from busline.event.message import Message
 
 
 @dataclass(kw_only=True, eq=False)
@@ -69,13 +68,16 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
         await asyncio.gather(*tasks)
 
     @override
-    async def publish(self, topic: str, event: Event, **kwargs):
+    async def publish(self, topic: str, message: Optional[Message] = None, **kwargs):
         """
         Publish event using all publishers
         """
 
+        if len(self.publishers) == 0:
+            logging.warning(f"{self}: subscribe called, but there are no publishers in this client")
+
         await asyncio.gather(*[
-            publisher.publish(topic, event, **kwargs) for publisher in self.publishers
+            publisher.publish(topic, message, **kwargs) for publisher in self.publishers
         ])
 
     @override
@@ -86,13 +88,16 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
 
 
     @override
-    async def subscribe(self, topic: str, **kwargs):
+    async def subscribe(self, topic: str, handler: Optional[EventHandler | Callable[[str, Event], Awaitable]] = None, **kwargs):
         """
         Subscribe all subscribers on topic
         """
 
+        if len(self.subscribers) == 0:
+            logging.warning(f"{self}: subscribe called, but there are no subscribers in this client")
+
         await asyncio.gather(*[
-            subscriber.subscribe(topic, **kwargs) for subscriber in self.subscribers
+            subscriber.subscribe(topic, handler, **kwargs) for subscriber in self.subscribers
         ])
 
     @override
@@ -107,27 +112,6 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
 
 
 @dataclass
-class PubTopicSubClient(PubSubClient):
-    """
-    Eventbus client which should used by components which wouldn't be a publisher/subscriber, but they need them
-
-    Author: Nicola Ricciardi
-    """
-
-    subscribers: List[TopicSubscriber]
-
-    @override
-    async def subscribe(self, topic: str, handler: Optional[EventHandler] = None, **kwargs):
-        """
-        Subscribe all subscribers on topic
-        """
-
-        await asyncio.gather(*[
-            subscriber.subscribe(topic, handler=handler, **kwargs) for subscriber in self.subscribers
-        ])
-
-
-@dataclass
 class PubSubClientBuilder:
     """
     Builder for a pub/sub client.
@@ -136,7 +120,7 @@ class PubSubClientBuilder:
     """
 
     base_client: PubSubClient = field(
-        default_factory=lambda: PubTopicSubClient(
+        default_factory=lambda: PubSubClient(
             publishers=[],
             subscribers=[]
         ),
@@ -165,16 +149,4 @@ class PubSubClientBuilder:
         return self
 
     def build(self) -> PubSubClient:
-        return self.base_client
-
-
-@dataclass
-class PubTopicSubClientBuilder(PubSubClientBuilder):
-    """
-
-    Author: Nicola Ricciardi
-    """
-
-    @override
-    def build(self) -> PubTopicSubClient:
         return self.base_client

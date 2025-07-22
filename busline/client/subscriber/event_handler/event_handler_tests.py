@@ -1,6 +1,6 @@
 import unittest
 
-from busline.client.subscriber.topic_subscriber.event_handler import event_handler, schemafull_event_handler
+from busline.client.subscriber.event_handler import event_handler, schemafull_event_handler
 from busline.event.event import Event
 
 

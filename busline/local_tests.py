@@ -1,0 +1,100 @@
+import asyncio
+import unittest
+
+from busline.client.subscriber.event_handler.callback_event_handler import CallbackEventHandler
+from busline.local.eventbus.local_eventbus import LocalEventBus
+from busline.local.local_publisher import LocalPublisher
+from busline.event.event import Event
+from busline.local.local_subscriber import LocalSubscriber
+
+
+class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
+
+    async def test_async_eventbus(self):
+
+        local_eventbus_instance1 = LocalEventBus()       # singleton
+        local_eventbus_instance2 = LocalEventBus()       # singleton
+
+        self.assertIs(local_eventbus_instance1, local_eventbus_instance2)        # check singleton
+
+        received_event = None
+
+        def callback(t: str, e: Event):
+            nonlocal received_event
+
+            received_event = e
+
+        subscriber = LocalSubscriber(
+            eventbus=local_eventbus_instance1,
+            default_handler=CallbackEventHandler(callback)
+        )
+        publisher = LocalPublisher(eventbus=local_eventbus_instance2)
+
+        await subscriber.connect()
+        await publisher.connect()
+
+        await subscriber.subscribe("tests")
+
+        event = await publisher.publish("tests")
+
+        self.assertIs(event, received_event)
+
+        await subscriber.unsubscribe()
+        received_event = None
+
+        event = await publisher.publish("tests")
+
+        self.assertIs(received_event, None)
+
+    async def test_incoming_events_queue(self):
+
+        test_topic1 = "test-topic-1"
+        test_topic2 = "test-topic-2"
+
+        publisher = LocalPublisher(eventbus=LocalEventBus())
+        subscriber = LocalSubscriber(eventbus=LocalEventBus())
+
+        await asyncio.gather(
+            publisher.connect(),
+            subscriber.connect()
+        )
+
+        n_inbound_events = 0
+        async def gather_inbound_events():
+            nonlocal n_inbound_events
+            nonlocal subscriber
+
+            async for (topic, event) in subscriber.inbound_events:
+                n_inbound_events += 1
+
+        asyncio.create_task(
+            gather_inbound_events(),
+        )
+
+        n_unhandled_events = 0
+        async def gather_unhandled_events():
+            nonlocal n_unhandled_events
+            nonlocal subscriber
+
+            async for (topic, event) in subscriber.inbound_unhandled_events:
+                n_unhandled_events += 1
+
+        asyncio.create_task(
+            gather_unhandled_events()
+        )
+
+        await subscriber.subscribe(test_topic1)
+        await subscriber.subscribe(test_topic2, lambda t, e: ...)
+
+        await asyncio.sleep(1)
+
+        await publisher.publish(test_topic1)
+        await publisher.publish(test_topic2)
+
+        await asyncio.sleep(2)
+
+        self.assertEqual(n_inbound_events, 2)
+        self.assertEqual(n_unhandled_events, 1)
+
+if __name__ == '__main__':
+    unittest.main()
