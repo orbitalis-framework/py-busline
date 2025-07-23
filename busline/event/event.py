@@ -22,7 +22,7 @@ M = TypeVar('M', bound='Message')
 @dataclass(kw_only=True)
 class Event(Generic[M]):
     """
-    TODO
+    Python-level inbound event
 
     Author: Nicola Ricciardi
     """
@@ -35,6 +35,12 @@ class Event(Generic[M]):
 
 @dataclass(kw_only=True)
 class RegistryPassthroughEvent:
+    """
+    Utility class to manage event serialization. It works with EventRegistry to manage deserialization.
+
+    Author: Nicola Ricciardi
+    """
+
     identifier: str
     publisher_identifier: str
     serialized_payload: Optional[bytes]
@@ -44,7 +50,11 @@ class RegistryPassthroughEvent:
 
 
     @classmethod
-    def from_event(cls, event: Event[M], message_type: Optional[str] = None) -> Self:
+    def from_event(cls, event: Event[M], *, message_type: Optional[str] = None) -> Self:
+        """
+        Automatically add event message to registry
+        """
+
         if message_type is None and event.payload is not None:
             message_type = _registry.add(type(event.payload), message_type=message_type)
 
@@ -71,6 +81,10 @@ class RegistryPassthroughEvent:
         )
 
     def to_event(self) -> Event:
+        """
+        Retrieve from registry right message class, then construct the event
+        """
+
         payload = None
         if self.serialized_payload is not None:
             if self.message_type is None:

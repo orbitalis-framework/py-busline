@@ -1,10 +1,6 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, asdict
+from abc import ABC
 from typing import Self, Tuple
-
 from dataclasses_avroschema import AvroModel
-import json
-
 from busline.event.message.message import Message
 from busline.utils.serde import SerdableMixin
 
@@ -13,6 +9,11 @@ AVRO_FORMAT_TYPE = "avro"
 
 
 class AvroMessageMixin(Message, SerdableMixin, AvroModel, ABC):
+    """
+    Avro implementation for serialize/deserialize
+
+    Author: Nicola Ricciardi
+    """
 
     def serialize(self) -> Tuple[str, bytes]:
         return AVRO_FORMAT_TYPE, AvroModel.serialize(self, serialization_type=AVRO_FORMAT_TYPE)

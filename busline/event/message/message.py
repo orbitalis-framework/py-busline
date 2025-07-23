@@ -13,7 +13,7 @@ BYTES_FORMAT_TYPE = "bytes"
 
 class Message(SerdableMixin, ABC):
     """
-    Event message for an event, it must be serializable and deserializable
+    Sendable message, it must be serializable and deserializable
 
     Author: Nicola Ricciardi
     """

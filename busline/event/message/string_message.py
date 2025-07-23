@@ -9,6 +9,11 @@ STRING_FORMAT_TYPE = "utf-8"
 
 @dataclass(frozen=True)
 class StringMessage(Message, SerdableMixin):
+    """
+    Wrap `str` and serialize into UTF-8
+
+    Author: Nicola Ricciardi
+    """
 
     value: str
 

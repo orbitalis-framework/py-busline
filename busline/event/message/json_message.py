@@ -11,6 +11,11 @@ JSON_FORMAT_TYPE = "json"
 
 @dataclass(frozen=True)
 class JsonMessageMixin(Message, SerdableMixin, ABC):
+    """
+    JSON implementation for serialize/deserialize
+
+    Author: Nicola Ricciardi
+    """
 
     @classmethod
     @abstractmethod

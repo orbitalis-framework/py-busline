@@ -10,6 +10,11 @@ from busline.utils.serde import SerdableMixin
 
 @dataclass(frozen=True)
 class Int64Message(Message, SerdableMixin):
+    """
+    Wrap `int` and serialize into 8 bytes integer number
+
+    Author: Nicola Ricciardi
+    """
 
     value: int
 
@@ -26,6 +31,11 @@ class Int64Message(Message, SerdableMixin):
 
 @dataclass(frozen=True)
 class Int32Message(Message, SerdableMixin):
+    """
+    Wrap `int` and serialize into 4 bytes integer number
+
+    Author: Nicola Ricciardi
+    """
 
     value: int
 
@@ -42,6 +52,11 @@ class Int32Message(Message, SerdableMixin):
 
 @dataclass(frozen=True)
 class Float32Message(Message, SerdableMixin):
+    """
+    Wrap `float` and serialize into 4 bytes floating point
+
+    Author: Nicola Ricciardi
+    """
 
     value: float
 
@@ -58,6 +73,11 @@ class Float32Message(Message, SerdableMixin):
 
 @dataclass(frozen=True)
 class Float64Message(Message, SerdableMixin):
+    """
+    Wrap `float` and serialize into 8 bytes floating point
+
+    Author: Nicola Ricciardi
+    """
 
     value: float
 

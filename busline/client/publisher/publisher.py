@@ -39,7 +39,7 @@ class PublishMixin(ABC):
 @dataclass(eq=False)
 class Publisher(EventBusConnector, PublishMixin, ABC):
     """
-    Abstract class which can be implemented by your components which must be able to publish on eventbus
+    Abstract class which can be implemented by your components which must be able to publish messages
 
     Author: Nicola Ricciardi
     """
@@ -88,19 +88,19 @@ class Publisher(EventBusConnector, PublishMixin, ABC):
         )
 
         logging.info(f"{self}: publish on {topic} -> {event}")
-        await self.on_publishing(topic, event, **kwargs)
+        await self._on_publishing(topic, event, **kwargs)
         await self._internal_publish(topic, event, **kwargs)
-        await self.on_published(topic, event, **kwargs)
+        await self._on_published(topic, event, **kwargs)
 
         return event
 
 
-    async def on_publishing(self, topic: str, event: Event, **kwargs):
+    async def _on_publishing(self, topic: str, event: Event, **kwargs):
         """
         Callback called on publishing start
         """
 
-    async def on_published(self, topic: str, event: Event, **kwargs):
+    async def _on_published(self, topic: str, event: Event, **kwargs):
         """
         Callback called on publishing end
         """
