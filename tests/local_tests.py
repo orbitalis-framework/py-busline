@@ -2,6 +2,7 @@ import asyncio
 import unittest
 
 from busline.client.subscriber.event_handler.callback_event_handler import CallbackEventHandler
+from busline.event.message.string_message import StringMessage
 from busline.local.eventbus.local_eventbus import LocalEventBus
 from busline.local.local_publisher import LocalPublisher
 from busline.event.event import Event
@@ -33,13 +34,22 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await subscriber.connect()
         await publisher.connect()
 
+        await asyncio.sleep(0.5)
+
         await subscriber.subscribe("tests")
 
+        await asyncio.sleep(0.5)
+
         event = await publisher.publish("tests")
+
+        await asyncio.sleep(0.5)
 
         self.assertIs(event, received_event)
 
         await subscriber.unsubscribe()
+
+        await asyncio.sleep(0.5)
+
         received_event = None
 
         event = await publisher.publish("tests")
@@ -58,6 +68,8 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
             publisher.connect(),
             subscriber.connect()
         )
+
+        await asyncio.sleep(0.5)
 
         n_inbound_events = 0
         async def gather_inbound_events():
@@ -91,10 +103,37 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await publisher.publish(test_topic1)
         await publisher.publish(test_topic2)
 
-        await asyncio.sleep(2)
+        await asyncio.sleep(1)
 
         self.assertEqual(n_inbound_events, 2)
         self.assertEqual(n_unhandled_events, 1)
 
-if __name__ == '__main__':
-    unittest.main()
+    async def test_string_message_publish(self):
+        received_message = None
+
+        async def callback(t: str, e: Event):
+            nonlocal received_message
+
+            self.assertTrue(isinstance(e.payload, StringMessage))
+
+            received_message = e.payload.value
+
+        subscriber = LocalSubscriber(eventbus=LocalEventBus())
+        publisher = LocalPublisher(eventbus=LocalEventBus())
+
+        await subscriber.connect()
+        await publisher.connect()
+
+        await asyncio.sleep(0.5)
+
+        await subscriber.subscribe("tests", handler=callback)
+
+        await asyncio.sleep(0.5)
+
+        message = "my message"
+
+        event = await publisher.publish("tests", message)
+
+        await asyncio.sleep(0.5)
+
+        self.assertIs(received_message, message)

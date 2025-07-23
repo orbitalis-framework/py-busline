@@ -6,12 +6,11 @@ from typing import Optional, override, Callable, List, Awaitable
 
 from busline.client.subscriber.subscriber import Subscriber
 from busline.client.subscriber.event_handler.event_handler import EventHandler
-from busline.event.event import RegistryBasedEvent, Event
+from busline.event.event import RegistryPassthroughEvent, Event, registry_passthrough_event_json_deserializer
 from busline.mqtt import _MqttClientWrapper
 
 
-def json_deserializer(serialized_event: bytes) -> RegistryBasedEvent:
-    return RegistryBasedEvent.from_dict(json.loads(serialized_event.decode("utf-8")))
+
 
 
 @dataclass(kw_only=True)
@@ -23,7 +22,7 @@ class MqttSubscriber(Subscriber, _MqttClientWrapper):
     """
 
 
-    deserializer: Callable[[bytes], RegistryBasedEvent] = field(default_factory=lambda: json_deserializer)
+    deserializer: Callable[[bytes], RegistryPassthroughEvent] = field(default_factory=lambda: registry_passthrough_event_json_deserializer)
     _handle_messages_task: asyncio.Task = field(default=None, init=False)
 
     @override

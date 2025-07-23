@@ -4,11 +4,11 @@ from busline.event.message.message import Message
 from busline.utils.serde import SerdableMixin
 
 
-STRING_FORMAT_TYPE = "string"
+STRING_FORMAT_TYPE = "utf-8"
 
 
 @dataclass(frozen=True)
-class RawStringMessage(Message, SerdableMixin):
+class StringMessage(Message, SerdableMixin):
 
     value: str
 

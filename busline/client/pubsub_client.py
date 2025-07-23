@@ -8,7 +8,7 @@ from busline.client.subscriber.event_handler import CallbackEventHandler
 from busline.client.subscriber.event_handler.event_handler import EventHandler
 from busline.event.event import Event
 from busline.client.subscriber.subscriber import Subscriber, SubscribeMixin
-from busline.event.message import Message
+from busline.event.message.message import Message
 
 
 @dataclass(kw_only=True, eq=False)

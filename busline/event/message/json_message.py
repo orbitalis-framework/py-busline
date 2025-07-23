@@ -22,7 +22,7 @@ class JsonMessageMixin(Message, SerdableMixin, ABC):
         raise NotImplemented()
 
     def serialize(self) -> Tuple[str, bytes]:
-        return JSON_FORMAT_TYPE, json.dumps(self.to_json()).encode("utf-8")
+        return JSON_FORMAT_TYPE, self.to_json().encode("utf-8")
 
     @classmethod
     def deserialize(cls, format_type: str, serialized_data: bytes) -> Self:

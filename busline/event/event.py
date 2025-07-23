@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 import uuid
 from datetime import datetime
 from dataclasses import dataclass, field, asdict
@@ -15,8 +17,24 @@ _registry = EventRegistry()
 
 M = TypeVar('M', bound='Message')
 
+
+
 @dataclass(kw_only=True)
-class RegistryBasedEvent:
+class Event(Generic[M]):
+    """
+    TODO
+
+    Author: Nicola Ricciardi
+    """
+
+    publisher_identifier: str
+    payload: Optional[M]
+    identifier: str
+    timestamp: datetime
+
+
+@dataclass(kw_only=True)
+class RegistryPassthroughEvent:
     identifier: str
     publisher_identifier: str
     serialized_payload: Optional[bytes]
@@ -26,14 +44,9 @@ class RegistryBasedEvent:
 
 
     @classmethod
-    def from_event(cls, event: Event[M], message_type: Optional[str] = None, *, add_to_registry: bool = True) -> Self:
+    def from_event(cls, event: Event[M], message_type: Optional[str] = None) -> Self:
         if message_type is None and event.payload is not None:
-
-            class_type = type(event.payload)
-            message_type = class_type.__name__
-
-            if add_to_registry:
-                _registry.add(message_type, class_type)
+            message_type = _registry.add(type(event.payload), message_type=message_type)
 
         payload_format_type, serialized_payload = event.payload.serialize() if event.payload is not None else (None, None)
 
@@ -63,7 +76,8 @@ class RegistryBasedEvent:
             if self.message_type is None:
                 raise ValueError("Message type missed")
 
-            payload = _registry.retrieve_class(self.message_type).deserialize(self.payload_format_type, self.serialized_payload)
+            class_of_message = _registry.retrieve_class(self.message_type)
+            payload = class_of_message.deserialize(self.payload_format_type, self.serialized_payload)
 
         return Event(
             identifier=self.identifier,
@@ -83,17 +97,29 @@ class RegistryBasedEvent:
         }
 
 
-@dataclass(kw_only=True)
-class Event(Generic[M]):
-    """
-    TODO
+def _custom_encoder(obj):
+    if isinstance(obj, datetime):
+        return {"__type__": "datetime", "value": obj.isoformat()}
+    if isinstance(obj, bytes):
+        return {"__type__": "bytes", "value": base64.b64encode(obj).decode("utf-8")}
 
-    Author: Nicola Ricciardi
-    """
+    return str(obj)
 
-    publisher_identifier: str
-    payload: Optional[M]
-    identifier: str
-    timestamp: datetime
+
+def registry_passthrough_event_json_serializer(event: RegistryPassthroughEvent) -> bytes:
+    return json.dumps(event.to_dict(), default=_custom_encoder).encode("utf-8")
+
+
+def _custom_decoder(obj):
+    if "__type__" in obj:
+        if obj["__type__"] == "datetime":
+            return datetime.fromisoformat(obj["value"])
+        if obj["__type__"] == "bytes":
+            return base64.b64decode(obj["value"])
+    return obj
+
+def registry_passthrough_event_json_deserializer(serialized_event: bytes) -> RegistryPassthroughEvent:
+    return RegistryPassthroughEvent.from_dict(json.loads(serialized_event.decode("utf-8"), object_hook=_custom_decoder))
+
 
 

@@ -8,6 +8,8 @@ import json
 from busline.utils.serde import SerdableMixin
 
 
+BYTES_FORMAT_TYPE = "bytes"
+
 
 class Message(SerdableMixin, ABC):
     """

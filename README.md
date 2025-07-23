@@ -1,8 +1,6 @@
 # Busline for Python
 
-Agnostic eventbus for Python.
-
-Official eventbus library for [Orbitalis](https://github.com/orbitalis-framework/py-orbitalis)
+Agnostic eventbus library for Python and official eventbus library for [Orbitalis](https://github.com/orbitalis-framework/py-orbitalis).
 
 ## Get Start
 
@@ -45,7 +43,7 @@ client = LocalPubSubClientBuilder()\
 
 await client.connect()
 
-await client.subscribe("topic-name")
+await client.subscribe("topic-name")    # 
 
 await client.publish("topic-name", Event())  # publish empty event
 

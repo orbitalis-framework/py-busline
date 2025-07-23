@@ -1,9 +1,11 @@
 import asyncio
 import unittest
+from typing import Optional
 
-from busline.client.pubsub_client import PubSubClient, PubSubClientBuilder
+from busline.client.pubsub_client import PubSubClientBuilder
 from busline.client.subscriber.event_handler import CallbackEventHandler
 from busline.event.event import Event
+from busline.event.message.number_message import Float64Message
 
 from busline.mqtt.mqtt_publisher import MqttPublisher
 from busline.mqtt.mqtt_subscriber import MqttSubscriber
@@ -107,7 +109,37 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(n_inbound_events, 2)
         self.assertEqual(n_unhandled_events, 1)
 
+    async def test_float_message_publish(self):
+        received_float: Optional[float] = None
 
+        async def callback(t: str, e: Event):
+            nonlocal received_float
+
+            self.assertTrue(isinstance(e.payload, Float64Message))
+
+            received_float = e.payload.value
+
+        publisher = MqttPublisher(hostname="127.0.0.1")
+        subscriber = MqttSubscriber(hostname="127.0.0.1")
+
+        await asyncio.gather(
+            subscriber.connect(),
+            publisher.connect()
+        )
+
+        await asyncio.sleep(1)
+
+        await subscriber.subscribe("tests", handler=callback)
+
+        await asyncio.sleep(0.5)
+
+        float_message = 3.14
+
+        event = await publisher.publish("tests", float_message)
+
+        await asyncio.sleep(0.5)
+
+        self.assertTrue(abs(received_float - float_message) < 0.1)
 
 
 if __name__ == '__main__':
