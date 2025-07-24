@@ -102,6 +102,8 @@ Fortunately, Busline provides out-of-the-box a set of mixins to avoid custom ser
 - `JsonMessageMixin` based on JSON, given that `json` library is not able to serialize some types of data (e.g., `set`), you will have to implement `to_json/from_json` methods
 - `StringMessage`, `Int64Message`, `Int32Message`, `Float32Message`, `Float64Message` to wrap primitive data
 
+Primitive wraps already support Avro and JSON serialization.
+
 > [!TIP]
 > If you use `AvroMessageMixin` you should not use dataclass default values which are time-variant (e.g. `datetime.now()`),
 > because this produces different schemas for the same dataclass.
