@@ -35,7 +35,7 @@ class Int64Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def deserialize(cls, format_type: str, serialized_data: bytes) -> Self:
-        if format_type == BYTES_FORMAT_TYPE:
+        if format_type is None or format_type == BYTES_FORMAT_TYPE:
             return cls(int.from_bytes(serialized_data, signed=True, byteorder="big"))
 
         if format_type == AVRO_FORMAT_TYPE:
@@ -81,7 +81,7 @@ class Int32Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def deserialize(cls, format_type: str, serialized_data: bytes) -> Self:
-        if format_type == BYTES_FORMAT_TYPE:
+        if format_type is None or format_type == BYTES_FORMAT_TYPE:
             return cls(int.from_bytes(serialized_data, byteorder="big"))
 
         if format_type == AVRO_FORMAT_TYPE:
@@ -113,7 +113,7 @@ class Float32Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
     value: float
 
     def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
-        if format_type == BYTES_FORMAT_TYPE:
+        if format_type is None or format_type == BYTES_FORMAT_TYPE:
             return BYTES_FORMAT_TYPE, struct.pack(">f", self.value)
 
         if format_type == AVRO_FORMAT_TYPE:
@@ -158,7 +158,7 @@ class Float64Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
     value: float
 
     def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
-        if format_type == BYTES_FORMAT_TYPE:
+        if format_type is None or format_type == BYTES_FORMAT_TYPE:
             return BYTES_FORMAT_TYPE, struct.pack(">d", self.value)
 
         if format_type == AVRO_FORMAT_TYPE:
