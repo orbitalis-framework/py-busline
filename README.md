@@ -1,15 +1,13 @@
-from busline.client.subscriber.event_handler import CallbackEventHandler
-
 # Busline for Python
 
 Agnostic asynchronous pub/sub library for Python and official library for [Orbitalis](https://github.com/orbitalis-framework/py-orbitalis).
 
-This library is fully based on `asyncio` and provided out-of-the-box a local and MQTT implementation.
+This library is fully based on `asyncio` and provides out-of-the-box a local and MQTT implementation.
 
-In addiction, you can choose between a pair pub/sub or a client, i.e. a set of publishers and subscribers. 
+You can choose between a pair pub/sub or a client, i.e. a set of publishers and subscribers. 
 Client allows you to use a _heterogeneous combination_ of pubs/subs (e.g., local + MQTT). 
 
-Busline allows you to choose your favourite programming pattern between _callback_ and _iterator_.
+Thanks to Busline, you can choose your favourite programming pattern between _callback_ and _iterator_ (or both!).
 
 ## Quick start
 
@@ -64,7 +62,7 @@ subscriber = LocalSubscriber(eventbus=LocalEventBus())
 ```
 
 > [!NOTE]
-> `LocalEventBus()` is a singleton and the default implementation of a local eventbus, but you can provide yours.
+> `LocalEventBus()` is a singleton eventbus and uses the one provided by the Busline as default, but you can provide yours.
 
 
 ### MQTT
@@ -78,6 +76,8 @@ subscriber = MqttSubscriber(hostname="127.0.0.1")
 > Default port: `1883`
 > 
 > Default event serializer/deserializer: JSON
+> 
+> Instantiate then in an asynchronous context.
 
 
 ## Documentation
@@ -87,24 +87,24 @@ subscriber = MqttSubscriber(hostname="127.0.0.1")
 We have 2+1 different concepts related to events in Busline:
 
 - `Message`: actual information that you publish
-- `Event`: inbound envelope of messages, providing useful information
+- `Event`: inbound envelope of messages, providing useful information (such as _who_ and _when_)
 - `RegistryPassthroughEvent`, low-level class to manage events communication (care about it only if you want to create your custom implementation of pubs/subs)
 
 #### Message
 
 `Message` is the class which contains data which can be published using publishers.
 
-We must provide `serialize` and `deserialize` methods, in order to be able to publish them.
+We must provide `serialize` and `deserialize` methods, in order to be able to publish the message.
 
-Fortunately, Busline provides out-of-the-box a set of mixins to avoid custom implementations:
+Fortunately, Busline provides out-of-the-box a set of mixins to avoid custom serde implementations:
 
 - `AvroMessageMixin` based on Avro, it uses `dataclasses_avroschema` library to work with dataclasses
-- `JsonMessageMixin` based on JSON, given that `json` library is not able to serialize some types of data (e.g., `set`), you will implement `to_json/from_json` methods
+- `JsonMessageMixin` based on JSON, given that `json` library is not able to serialize some types of data (e.g., `set`), you will have to implement `to_json/from_json` methods
 - `StringMessage`, `Int64Message`, `Int32Message`, `Float32Message`, `Float64Message` to wrap primitive data
 
-> [!NOTE]
+> [!TIP]
 > If you use `AvroMessageMixin` you should not use dataclass default values which are time-variant (e.g. `datetime.now()`),
-> because schemas will be different.
+> because this produces different schemas for the same dataclass.
 
 
 ```python
@@ -152,7 +152,9 @@ Events can be sent also without a payload, for example if you want to notify onl
 
 Generally, you must not care about its creation, because it is performed in subscribers logic.
 
-- `identifier`: unique identifier of event
+Following information provided:
+
+- `identifier`: unique event identifier
 - `publisher_identifier`: identifier of publisher
 - `payload`: message data
 - `timestamp`: event generation datetime
@@ -162,12 +164,13 @@ Generally, you must not care about its creation, because it is performed in subs
 
 Given serialized data, we know neither serialization format nor message type.
 
-In Busline there are **two serializations**: messages serialization and events serialization.
+In Busline there are **two serializations**: messages serialization and events serialization. 
+During events serialization, message serialization methods provided by you (or by us) are used. 
 
-`EventRegistry` is a _singleton_ which helps system to retrieve right class type to instance message objects.
+`EventRegistry` is a _singleton_ which helps system to retrieve right class type to instantiate message objects during deserialization.
 In particular, it stores associations `message_type => Type[Message]`.
 
-`RegistryPassthroughEvent` represents the utility model which should be serialized by publishers based on related eventbus and
+`RegistryPassthroughEvent` represents the utility data model which should be serialized by publishers based on related eventbus and
 deserialized by subscribers. In addiction, it works together with `EventRegistry` to restore message class based on bytes.
 
 Following class fields:
@@ -176,20 +179,20 @@ Following class fields:
 - `publisher_identifier: str`
 - `serialized_payload: Optional[bytes]` contains bytes produced by message (`payload` of `Event`) serialization.
 - `payload_format_type: Optional[str]` states serialization format (e.g., JSON, Avro, ...)
-- `message_type: Optional[str]` states "what" message is stored in bytes
+- `message_type: Optional[str]` states "which" message is stored in bytes
 - `timestamp: datetime`
 
 `RegistryPassthroughEvent` is equipped with `from_event`/`to_event` methods 
 and with `from_dict`/`to_dict` to provide its serializable data in a fancy way (they exploit `serialize`/`deserialize` methods of message payload).
 
-`from_event` adds event message to registry automatically, in order to make it available in a second time.
+`from_event` adds event message to registry _automatically_, in order to make it available in a second time.
 
-`to_event` retrieves from registry right message class, then construct the event.
+`to_event` retrieves from registry right message class, then construct `Event`.
 
 > [!NOTE]
-> Without this process we are not able to provide you an instance of message class.
+> Without this process we are not able to provide you the right instance of message class.
 
-Therefore, the common steps to send an event into an eventbus and reconstruct it is:
+Therefore, the common steps executed during event sending are:
 
 1. Create a `Message`
 2. Wrap the `Message` in an `Event`
@@ -198,7 +201,7 @@ Therefore, the common steps to send an event into an eventbus and reconstruct it
 5. Send serialized `RegistryPassthroughEvent` into eventbus
 6. Deserialize bytes of `RegistryPassthroughEvent` (e.g., you could use `registry_passthrough_event_json_deserializer` function)
 7. Reconstruct `Event` using `to_event` of `RegistryPassthroughEvent`
-8. Retrieve the message thanks to `event.payload`
+8. Finally, you can retrieve the message thanks to `event.payload`
 
 ```python
 message = MyMessage()
@@ -255,9 +258,9 @@ If you want to publish a message in more topics at the same time: `multi_publish
 `message` can be `None` if you want to send a payload-empty event, otherwise you can provide:
 
 - Implementation of `Message`
-- `str` which is wrapped into `StringMessage`
-- `int` which is wrapped into `Int64Message`
-- `float` which is wrapped into `Float64Message`
+- `str` which is wrapped into `StringMessage` automatically
+- `int` which is wrapped into `Int64Message` automatically
+- `float` which is wrapped into `Float64Message` automatically
 
 ```python
 await publisher.connect()
@@ -286,14 +289,14 @@ Busline provides two implementations:
 #### LocalPublisher
 
 ```python
-publisher = LocalPublisher(eventbus=...)
+publisher = LocalPublisher(eventbus=LocalEventBus())
 ```
 
 You must only provide an eventbus implementation which works locally.
 Busline provides `AsyncLocalEventBus`, which is wrapped in a singleton called `LocalEventBus`.
 
 You can implement your eventbus thanks to `EventBus` abstract class.
-By default, no wildcards are supported, but you can override `_topic_names_match` to change the logic.
+By default, no wildcards are supported, but you can override `_topic_names_match` `EventBus` method to change the logic.
 
 
 #### MqttPublisher
@@ -314,12 +317,13 @@ MqttPublisher(hostname="127.0.0.1")
 
 ### Subscriber
 
-`Subscriber` is the abstract class which provides the base implementation for a subscriber. It has some similarities with `Publisher`.
+`Subscriber` is the abstract class which provides the base implementation for a subscriber. 
+It has some similarities with `Publisher`.
 
 You can subscribe to a topic using `subscribe` method and unsubscribe thanks to `unsubscribe`. 
 If no topic is specified during unsubscription, subscriber unsubscribes itself from **all** topics.
 
-`multi_subscribe` and `multi_unsubscribe` are provided.
+Also `multi_subscribe` and `multi_unsubscribe` are provided.
 
 ```python
 await subscriber.subscribe("topic")
@@ -375,6 +379,8 @@ await handler.handle(
 ```
 
 If you don't want to wrap every time your functions or _if you have a method_ instead, you can use our decorator: `@event_handler`.
+It transforms every function and method into a `CallbackEventHandler`, so you can refer to it using simply function/method reference.
+If you use a method, `self` context is _preserved_.
 
 ```python
 @event_handler
@@ -387,7 +393,7 @@ async def my_function(topic: str, event: Event):
 > 
 > `from busline.client.subscriber.event_handler import event_handler`
 > 
-> This will not work:
+> This will _not work_:
 > 
 > `import busline.client.subscriber.event_handler`
 
@@ -400,11 +406,11 @@ You can specify a `EventHandler` or a function/method (which will be wrapped int
 ```python
 subscriber = MockSubscriber(default_handler=...)
 
-await subscriber.subscribe(test_topic2, CallbackEventHandler(lambda t, e: ...))
+await subscriber.subscribe("topic", CallbackEventHandler(lambda t, e: ...))
 # or
-await subscriber.subscribe(test_topic2, lambda t, e: ...)
+await subscriber.subscribe("topic", lambda t, e: ...)
 # or
-await subscriber.subscribe(test_topic2)     # will use default handler if set
+await subscriber.subscribe("topic")     # will use default handler if set
 ```
 
 Every new inbound event is handled using the related pre-defined handler or default (_if it was defined_).
@@ -413,8 +419,7 @@ If you want to ensure to use a handler for every topic, you must set `handler_al
 
 > [!NOTE]
 > If you use wildcard, you must specify a `topic_names_matcher` function in order to provide wildcards logic.
-> 
-> By default, a handler handles an event if its related topic and the inbound topic are _perfectly_ equal.
+> By default, a handler handles an event if its related topic and the inbound topic are _exactly_ equal (i.e., `==`).
 
 #### Iterator-style
 
@@ -422,8 +427,8 @@ If you don't like callbacks, you can use asynchronous iterators (i.e., `async fo
 
 Every subscriber provides you two properties:
 
-- `inbound_events`: generator which provides you all inbound events
-- `inbound_unhandled_events`: generator which provides you all inbound events which are _not handled_ by a handler
+- `inbound_events`: generator which provides you _all_ inbound events
+- `inbound_unhandled_events`: generator which provides you inbound events which are _not handled_ by a handler
 
 Obviously, some events can arrive both to `inbound_events` and `inbound_unhandled_events`.
 
@@ -438,7 +443,7 @@ async for (topic, event) in subscriber.inbound_unhandled_events:
 
 #### Custom subscriber implementation
 
-The main methods which you should implement if you want to create your subscriber are `_internal_subscribe` and `_internal_unsubscribe`,
+The main methods which you should implement if you want to create your custom subscriber are `_internal_subscribe` and `_internal_unsubscribe`,
 in which must be inserted logic of subscription and unsubscription.
 
 Remember `notify` method, this already processes every needed operations in a subscriber, therefore you should only collect remote message (from eventbus)
