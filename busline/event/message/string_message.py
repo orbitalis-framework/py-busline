@@ -50,7 +50,7 @@ class StringMessage(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        cls(json.loads(json_str)["value"])
+        return cls(json.loads(json_str)["value"])
 
     def to_json(self) -> str:
         return json.dumps({

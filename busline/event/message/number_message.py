@@ -48,7 +48,7 @@ class Int64Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        cls(json.loads(json_str)["value"])
+        return cls(json.loads(json_str)["value"])
 
     def to_json(self) -> str:
         return json.dumps({
@@ -94,7 +94,7 @@ class Int32Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        cls(json.loads(json_str)["value"])
+        return cls(json.loads(json_str)["value"])
 
     def to_json(self) -> str:
         return json.dumps({
@@ -139,7 +139,7 @@ class Float32Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        cls(json.loads(json_str)["value"])
+        return cls(json.loads(json_str)["value"])
 
     def to_json(self) -> str:
         return json.dumps({
@@ -184,7 +184,7 @@ class Float64Message(AvroMessageMixin, JsonMessageMixin, SerdableMixin):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        cls(json.loads(json_str)["value"])
+        return cls(json.loads(json_str)["value"])
 
     def to_json(self) -> str:
         return json.dumps({

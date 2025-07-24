@@ -7,6 +7,9 @@ from datetime import datetime
 from dataclasses import dataclass, field, asdict
 from typing import Optional, Generic, TypeVar, Dict, Self
 from abc import ABC
+
+from dataclasses_avroschema import AvroModel
+
 from busline.utils.serde import SerdableMixin
 from busline.event.registry import EventRegistry
 
@@ -34,7 +37,7 @@ class Event(Generic[M]):
 
 
 @dataclass(kw_only=True)
-class RegistryPassthroughEvent:
+class RegistryPassthroughEvent(AvroModel):
     """
     Utility class to manage event serialization. It works with EventRegistry to manage deserialization.
 

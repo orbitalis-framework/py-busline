@@ -8,6 +8,7 @@ from busline.event.message.avro_message import AvroMessageMixin, AVRO_FORMAT_TYP
 from busline.event.event import Event, RegistryPassthroughEvent, registry_passthrough_event_json_serializer, registry_passthrough_event_json_deserializer
 from busline.event.message.json_message import JsonMessageMixin, JSON_FORMAT_TYPE
 from busline.event.message.message import Message
+from busline.event.message.number_message import Int64Message, Float32Message
 from busline.event.message.string_message import StringMessage
 from busline.event.registry import EventRegistry, add_to_registry
 
@@ -155,8 +156,28 @@ class TestEventRegistry(unittest.TestCase):
         self.assertEqual(event_rec.publisher_identifier, event.publisher_identifier)
         self.assertEqual(event_rec.timestamp, event.timestamp)
 
+    def test_serde_multi_format_type(self):
+        int64_message = Int64Message(42)
 
+        format_type, serialized_data = int64_message.serialize(format_type=AVRO_FORMAT_TYPE)
 
+        self.assertEqual(format_type, AVRO_FORMAT_TYPE)
+
+        self.assertEqual(Int64Message.deserialize(format_type, serialized_data), int64_message)
+
+        format_type, serialized_data = int64_message.serialize(format_type=JSON_FORMAT_TYPE)
+
+        self.assertEqual(format_type, JSON_FORMAT_TYPE)
+
+        self.assertEqual(Int64Message.deserialize(format_type, serialized_data), int64_message)
+
+        float32_message = Float32Message(3.14)
+
+        format_type, serialized_data = float32_message.serialize(format_type=AVRO_FORMAT_TYPE)
+
+        self.assertEqual(format_type, AVRO_FORMAT_TYPE)
+
+        self.assertEqual(Float32Message.deserialize(format_type, serialized_data), float32_message)
 
 
 
