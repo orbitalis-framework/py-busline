@@ -1,3 +1,5 @@
+from busline.client.subscriber.event_handler import CallbackEventHandler
+
 # Busline for Python
 
 Agnostic asynchronous pub/sub library for Python and official library for [Orbitalis](https://github.com/orbitalis-framework/py-orbitalis).
@@ -216,17 +218,37 @@ event = rp_event.to_event()
 message = event.payload
 ```
 
+##### Add to registry manually
+
+If you want to add an association into registry manually you can:
+
+- Decorate a class using `@add_to_registry`
+- Use `add` method of registry
+
+```python
+@dataclass
+@add_to_registry
+class MyMessage(AvroMessageMixin):
+    pass
+```
+
+```python
+event_registry = EventRegistry()    # singleton
+
+message_type = event_registry.add(MyMessage)
+
+# or if you want to explicit define the message type:
+message_type = event_registry.add(MyMessage, message_type="my_message")
+assert message_type == "my_message"
+```
+
 
 ### Publisher
 
 `Publisher` is the abstract class which can be implemented to create publishers.
 
-If you want to implement your publishers you must implement only `_internal_publish`, 
-in which you must insert logic to send messages.
-
-There are two additional hooks: `_on_publishing` and `_on_published`, called before and after `_internal_publish` when `publish` method is called.
-
-If you want to publish more messages: `multi_publish` method.
+The main method is `publish`, used to publish a message in only one topic. 
+If you want to publish a message in more topics at the same time: `multi_publish`.
 
 `publish` method takes two parameters: `topic` and `message`. 
 `topic` is a string and represent the topic in which message must be published.
@@ -237,6 +259,25 @@ If you want to publish more messages: `multi_publish` method.
 - `int` which is wrapped into `Int64Message`
 - `float` which is wrapped into `Float64Message`
 
+```python
+await publisher.connect()
+
+await publisher.publish("topic", "hello")
+await publisher.publish("topic", 42)
+await publisher.publish("topic", 3.14)
+await publisher.publish("topic", YourCustomMessage(...))
+
+await publisher.disconnect()
+```
+
+In addiction to `topic` and `message`, `publish` can be fed using more parameters, but they depend on actual publisher implementation.
+
+If you want to implement your publishers you must implement only `_internal_publish`, 
+in which you must insert logic to send messages.
+
+There are two additional hooks: `_on_publishing` and `_on_published`, called before and after `_internal_publish` when `publish` method is called.
+
+
 Busline provides two implementations:
 
 - `LocalPublisher`
@@ -245,7 +286,7 @@ Busline provides two implementations:
 #### LocalPublisher
 
 ```python
-LocalPublisher(eventbus=...)
+publisher = LocalPublisher(eventbus=...)
 ```
 
 You must only provide an eventbus implementation which works locally.
@@ -267,24 +308,194 @@ MqttPublisher(hostname="127.0.0.1")
 - `other_client_parameters`: key-value dictionary which is provided during `aiomqtt` MQTT client creation
 - `serializer`: function to serialize events, by default JSON is used (see `RegistryPassthroughEvent` explanation)
 
+> [!WARNING]
+> You _must_ instantiate it into an `async` context (e.g., async function), otherwise an error will be raised.
+
 
 ### Subscriber
 
-TODO
+`Subscriber` is the abstract class which provides the base implementation for a subscriber. It has some similarities with `Publisher`.
+
+You can subscribe to a topic using `subscribe` method and unsubscribe thanks to `unsubscribe`. 
+If no topic is specified during unsubscription, subscriber unsubscribes itself from **all** topics.
+
+`multi_subscribe` and `multi_unsubscribe` are provided.
+
+```python
+await subscriber.subscribe("topic")
+# see below how to consume messages
+```
+
+If you want to manually notify a subscriber: `notify` method.
+
+```python
+subscriber.notify(
+    "topic",
+    Event(...)
+)
+```
+
+There are two main ways to consume messages:
+
+- **Handler**
+- **Iterator**
+
+You can also use both!
+
+#### Handler-style
+
+`EventHandler` represents an object which is able to handle a new event.
+Busline provides two handler implementations:
+
+- `CallbackEventHandler` to wrap a _synchronous_ or an _asynchronous_ function
+- `MultiEventHandler` to wrap more than one handler (order of execution is strict if `strict_order=True`, otherwise they are executed in parallel)
+
+```python
+def sync_handler_callback(topic: str, event: Event):
+    print(f"{topic} -> {event}")
+    
+async def async_handler_callback(topic: str, event: Event):
+    print(f"{topic} -> {event}")
+    
+handler1 = CallbackEventHandler(sync_handler_callback)
+# or
+handler2 = CallbackEventHandler(async_handler_callback)
+
+await handler1.handle(
+    "topic",
+    Event(...)
+)
+
+handler = MultiEventHandler([handler1, handler2])
+
+await handler.handle(
+    "topic",
+    Event(...)
+)
+```
+
+If you don't want to wrap every time your functions or _if you have a method_ instead, you can use our decorator: `@event_handler`.
+
+```python
+@event_handler
+async def my_function(topic: str, event: Event):
+    print(f"{topic} -> {event}")
+```
+
+> [!WARNING]
+> You must import event_handler decorator explicitly: 
+> 
+> `from busline.client.subscriber.event_handler import event_handler`
+> 
+> This will not work:
+> 
+> `import busline.client.subscriber.event_handler`
+
+
+`Subscriber` has `default_handler` attribute, which represents the default handler which will be used if there is not a handler related to a topic.
+
+In addiction, when you subscribe to a topic, you can (or not) specify a handler. In case, that handler will be used to handle new events.
+You can specify a `EventHandler` or a function/method (which will be wrapped into a `CallbackHandler`):
+
+```python
+subscriber = MockSubscriber(default_handler=...)
+
+await subscriber.subscribe(test_topic2, CallbackEventHandler(lambda t, e: ...))
+# or
+await subscriber.subscribe(test_topic2, lambda t, e: ...)
+# or
+await subscriber.subscribe(test_topic2)     # will use default handler if set
+```
+
+Every new inbound event is handled using the related pre-defined handler or default (_if it was defined_).
+
+If you want to ensure to use a handler for every topic, you must set `handler_always_required=True` attribute in subscriber.
+
+> [!NOTE]
+> If you use wildcard, you must specify a `topic_names_matcher` function in order to provide wildcards logic.
+> 
+> By default, a handler handles an event if its related topic and the inbound topic are _perfectly_ equal.
+
+#### Iterator-style
+
+If you don't like callbacks, you can use asynchronous iterators (i.e., `async for`).
+
+Every subscriber provides you two properties:
+
+- `inbound_events`: generator which provides you all inbound events
+- `inbound_unhandled_events`: generator which provides you all inbound events which are _not handled_ by a handler
+
+Obviously, some events can arrive both to `inbound_events` and `inbound_unhandled_events`.
+
+```python
+async for (topic, event) in subscriber.inbound_events:
+    print(f"{topic} -> {event}")
+
+async for (topic, event) in subscriber.inbound_unhandled_events:
+    print(f"{topic} -> {event}")
+```
+
+
+#### Custom subscriber implementation
+
+The main methods which you should implement if you want to create your subscriber are `_internal_subscribe` and `_internal_unsubscribe`,
+in which must be inserted logic of subscription and unsubscription.
+
+Remember `notify` method, this already processes every needed operations in a subscriber, therefore you should only collect remote message (from eventbus)
+and call it.
 
 #### LocalSubscriber
 
-TODO
+```python
+LocalSubscriber(eventbus=LocalEventBus())
+```
+
+`LocalSubscriber` is the implementation to use a local eventbus, which must be fed during definition.
+
+Similarly for `Publisher`, Busline already provides `AsyncLocalEventBus`, which is wrapped in a singleton called `LocalEventBus`.
 
 #### MqttSubscriber
 
-TODO
+```python
+MqttSubscriber(hostname="127.0.0.1")
+```
+
+`MqttSubscriber` is a MQTT subscriber implementation provided by Busline, based on `aiomqtt` library.
+
+You must provide `hostname` of your MQTT broker and may provide `port` and `other_client_parameters`.
+
+`MqttSubscriber` uses a `deserializer`, i.e. function to deserialize events, by default JSON is used (see `RegistryPassthroughEvent` explanation).
+
+> [!WARNING]
+> You _must_ instantiate it into an `async` context (e.g., async function), otherwise an error will be raised.
 
 
-### Client
+### PubSubClient
 
-TODO
+`PubSubClient` is a class which wraps a list of publishers and subscribers in order to provide both methods in an all-in-one object.
 
+`PubSubClient` allows you to use _different kinds of publishers and subscribers_! 
+Therefore, you can publish a message in more eventbus at the same time.
 
+To simplify its creation, `PubSubClientBuilder` is provided.
+
+```python
+client = (PubSubClientBuilder()
+            .with_publishers([
+                MqttPublisher(hostname="127.0.0.1"),
+                LocalPublisher(eventbus=LocalEventBus())
+            ])
+            .with_subscribers([
+                MqttSubscriber(hostname="127.0.0.1"),
+                LocalSubscriber(eventbus=LocalEventBus())
+            ])
+            .build())
+
+await client.connect()
+
+# ...
+
+await client.disconnect()
+```
 
 

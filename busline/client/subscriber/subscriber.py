@@ -7,13 +7,19 @@ from idlelib.window import add_windows_to_menu
 from typing import Optional, override, List, Tuple, Dict, Callable, Any, AsyncGenerator, Awaitable
 
 from busline.client.eventbus_connector import EventBusConnector
-from busline.client.subscriber.event_handler import CallbackEventHandler
+from busline.client.subscriber.event_handler import CallbackEventHandler, event_handler
 from busline.client.subscriber.event_handler.event_handler import EventHandler
 from busline.event.event import Event
 from busline.exceptions import EventHandlerNotFound
 
 
 class SubscribeMixin(ABC):
+    """
+    Mixin which provides base methods to subscribe and unsubscribe
+
+    Author: Nicola Ricciardi
+    """
+
     @abstractmethod
     async def subscribe(self, topic: str, **kwargs):
         raise NotImplemented()
@@ -46,7 +52,7 @@ class SubscribeMixin(ABC):
 
 
 
-@dataclass(eq=False)
+@dataclass(kw_only=True, eq=False)
 class Subscriber(EventBusConnector, SubscribeMixin, ABC):
     """
     Handles different topic events using ad hoc handlers defined by user,
@@ -99,7 +105,7 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
 
         if handler is not None:
             if not issubclass(type(handler), EventHandler):
-                handler = CallbackEventHandler(handler)
+                handler = event_handler(handler)
 
         logging.info(f"{self}: subscribe on topic {topic}")
         await self._on_subscribing(topic, handler, **kwargs)
@@ -193,12 +199,20 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
 
     @property
     async def inbound_events(self) -> AsyncGenerator[tuple[str, Event], None]:
+        """
+        Generator which provides all inbound events
+        """
+
         while not self._stop_queue_processing.is_set():
             topic, event = await self._inbound_events_queue.get()
             yield topic, event
 
     @property
     async def inbound_unhandled_events(self) -> AsyncGenerator[tuple[str, Event], None]:
+        """
+        Generator which provides only inbound events which are not handled
+        """
+
         while not self._stop_queue_processing.is_set():
             topic, event = await self._inbound_not_handled_events_queue.get()
             yield topic, event

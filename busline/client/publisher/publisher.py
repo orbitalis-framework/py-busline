@@ -14,6 +14,11 @@ from busline.event.message.string_message import StringMessage
 
 
 class PublishMixin(ABC):
+    """
+    Mixin which provides base methods to publish a message
+
+    Author: Nicola Ricciardi
+    """
 
     @abstractmethod
     async def publish(self, topic: str, event: Event, **kwargs):
@@ -36,7 +41,7 @@ class PublishMixin(ABC):
 
 
 
-@dataclass(eq=False)
+@dataclass(kw_only=True, eq=False)
 class Publisher(EventBusConnector, PublishMixin, ABC):
     """
     Abstract class which can be implemented by your components which must be able to publish messages

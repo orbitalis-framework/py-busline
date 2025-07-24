@@ -66,6 +66,11 @@ class EventRegistry(metaclass=Singleton):
 
 
 def add_to_registry(cls: Type[Message]):
+    """
+    Add to registry the decorated class
+
+    Author: Nicola Ricciardi
+    """
 
     # add event message in registry
     reg = EventRegistry()

@@ -2,7 +2,6 @@ import inspect
 from typing import Callable, Coroutine, Dict, override, List, Any, Awaitable
 from dataclasses import dataclass, field
 
-from busline.client.subscriber.event_handler.schemafull_handler import SchemafullEventHandler
 from busline.event.event import Event
 from busline.client.subscriber.event_handler.event_handler import EventHandler
 
@@ -32,23 +31,4 @@ class CallbackEventHandler(EventHandler):
 
     async def handle(self, topic: str, event: Event):
         await self.__actual_async_on_event_callback(topic, event)
-
-
-@dataclass
-class SchemafullCallbackEventHandler(SchemafullEventHandler):
-    """
-    Event handler which use a pre-defined callback
-
-    Author: Nicola Ricciardi
-    """
-
-    schemas: List[Dict]
-    on_event_callback: Callable[[str, Event], Coroutine]
-
-    @override
-    def input_schemas(self) -> List[Dict]:
-        return self.schemas
-
-    async def handle(self, topic: str, event: Event):
-        await self.on_event_callback(topic, event)
 

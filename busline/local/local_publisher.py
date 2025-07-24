@@ -8,7 +8,7 @@ from busline.exceptions import EventBusClientNotConnected
 from dataclasses import dataclass, field
 
 
-@dataclass(kw_only=True, eq=False)
+@dataclass(eq=False)
 class LocalPublisher(Publisher):
     """
     Publisher which works with local eventbus, this class can be initialized and used stand-alone

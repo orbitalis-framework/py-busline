@@ -9,7 +9,7 @@ from busline.local.eventbus.eventbus import EventBus
 from busline.exceptions import EventBusClientNotConnected
 
 
-@dataclass(kw_only=True, eq=False)
+@dataclass(eq=False)
 class LocalSubscriber(Subscriber):
     """
     Subscriber topic-based which works with local eventbus

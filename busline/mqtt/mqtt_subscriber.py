@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from typing import Optional, override, Callable, List, Awaitable
+from typing import Optional, override, Callable, List, Awaitable, Set
 
 from busline.client.subscriber.subscriber import Subscriber
 from busline.client.subscriber.event_handler.event_handler import EventHandler
@@ -25,6 +25,8 @@ class MqttSubscriber(Subscriber, _MqttClientWrapper):
     deserializer: Callable[[bytes], RegistryPassthroughEvent] = field(default_factory=lambda: registry_passthrough_event_json_deserializer)
     _handle_messages_task: asyncio.Task = field(default=None, init=False)
 
+    __subscribed_topics: Set[str] = field(default_factory=set, init=False)
+
     @override
     async def connect(self):
         await super().connect()
@@ -46,8 +48,21 @@ class MqttSubscriber(Subscriber, _MqttClientWrapper):
     @override
     async def _internal_subscribe(self, topic: str, handler: Optional[EventHandler | Callable[[str, Event], Awaitable]] = None, **kwargs):
         await self._internal_client.subscribe(topic)
+        self.__subscribed_topics.add(topic)
 
 
     @override
     async def _internal_unsubscribe(self, topic: Optional[str] = None, **kwargs):
-        await self._internal_client.unsubscribe(topic)
+
+        if topic is not None:
+            await self._internal_client.unsubscribe(topic)
+            self.__subscribed_topics.remove(topic)
+        else:
+            tasks = [
+                    asyncio.create_task(self._internal_client.unsubscribe(t))
+                    for t in self.__subscribed_topics
+                ]
+
+            self.__subscribed_topics.clear()
+
+            await asyncio.gather(*tasks)
