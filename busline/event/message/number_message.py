@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Self, Tuple, Literal
+from typing import Self, Tuple, Literal, Optional
 import struct
 
 from busline.event.message.message import Message, BYTES_FORMAT_TYPE
@@ -18,7 +18,7 @@ class Int64Message(Message, SerdableMixin):
 
     value: int
 
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
         return BYTES_FORMAT_TYPE, self.value.to_bytes(length=8, signed=True, byteorder="big")
 
     @classmethod
@@ -39,7 +39,7 @@ class Int32Message(Message, SerdableMixin):
 
     value: int
 
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
         return BYTES_FORMAT_TYPE, self.value.to_bytes(length=4, byteorder="big")
 
     @classmethod
@@ -60,7 +60,7 @@ class Float32Message(Message, SerdableMixin):
 
     value: float
 
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
         return BYTES_FORMAT_TYPE, struct.pack(">f", self.value)
 
     @classmethod
@@ -81,7 +81,7 @@ class Float64Message(Message, SerdableMixin):
 
     value: float
 
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
         return BYTES_FORMAT_TYPE, struct.pack(">d", self.value)
 
     @classmethod

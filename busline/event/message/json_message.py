@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
-from typing import Self, Tuple
+from typing import Self, Tuple, Optional
 import json
 from busline.event.message.message import Message
 from busline.utils.serde import SerdableMixin
@@ -26,7 +26,10 @@ class JsonMessageMixin(Message, SerdableMixin, ABC):
     def to_json(self) -> str:
         raise NotImplemented()
 
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
+        if format_type is not None and format_type != JSON_FORMAT_TYPE:
+            raise ValueError(f"{format_type} != {JSON_FORMAT_TYPE}")
+
         return JSON_FORMAT_TYPE, self.to_json().encode("utf-8")
 
     @classmethod

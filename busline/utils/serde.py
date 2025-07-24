@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Self
+from typing import Tuple, Self, Optional
 
 
 class SerializableMixin(ABC):
@@ -9,10 +9,12 @@ class SerializableMixin(ABC):
 
 
     @abstractmethod
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
         """
         Serialize itself and return (format type, serialized data).
         For example, ("json", "{...}").
+
+        Explicitly provide format_type to choose it, otherwise default is used
         """
 
         raise NotImplemented()

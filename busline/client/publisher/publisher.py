@@ -21,23 +21,23 @@ class PublishMixin(ABC):
     """
 
     @abstractmethod
-    async def publish(self, topic: str, event: Event, **kwargs):
+    async def publish(self, topic: str, message: Optional[Message | str | int | float] = None, **kwargs):
         raise NotImplemented()
 
-    async def multi_publish(self, topics: List[str], event: Event, /, parallelize: bool = True, **kwargs):
+    async def multi_publish(self, topics: List[str], message: Optional[Message | str | int | float] = None, *, parallelize: bool = True, **kwargs):
         """
         Publish the same event in more topics
         """
 
-        logging.debug(f"{self}: publish event {event} in {len(topics)} topics (parallelization: {parallelize})")
+        logging.debug(f"{self}: publish message {message} in {len(topics)} topics (parallelization: {parallelize})")
 
         if parallelize:
-            tasks = [self.publish(topic, event, **kwargs) for topic in topics]
+            tasks = [self.publish(topic, message, **kwargs) for topic in topics]
             await asyncio.gather(*tasks)
 
         else:
             for topic in topics:
-                await self.publish(topic, event, **kwargs)
+                await self.publish(topic, message, **kwargs)
 
 
 

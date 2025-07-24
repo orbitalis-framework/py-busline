@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Self, Tuple
+from typing import Self, Tuple, Optional
 from dataclasses_avroschema import AvroModel
 from busline.event.message.message import Message
 from busline.utils.serde import SerdableMixin
@@ -15,7 +15,10 @@ class AvroMessageMixin(Message, SerdableMixin, AvroModel, ABC):
     Author: Nicola Ricciardi
     """
 
-    def serialize(self) -> Tuple[str, bytes]:
+    def serialize(self, *, format_type: Optional[str] = None) -> Tuple[str, bytes]:
+        if format_type is not None and format_type != AVRO_FORMAT_TYPE:
+            raise ValueError(f"{format_type} != {AVRO_FORMAT_TYPE}")
+
         return AVRO_FORMAT_TYPE, AvroModel.serialize(self, serialization_type=AVRO_FORMAT_TYPE)
 
     @classmethod

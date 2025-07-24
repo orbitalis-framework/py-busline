@@ -68,7 +68,7 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
         await asyncio.gather(*tasks)
 
     @override
-    async def publish(self, topic: str, message: Optional[Message] = None, **kwargs):
+    async def publish(self, topic: str, message: Optional[Message | str | int | float] = None, **kwargs):
         """
         Publish event using all publishers
         """
@@ -81,9 +81,9 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
         ])
 
     @override
-    async def multi_publish(self, topics: List[str], event: Event, parallelize: bool = True, **kwargs):
+    async def multi_publish(self, topics: List[str], message: Optional[Message | str | int | float] = None, *, parallelize: bool = True, **kwargs):
         await asyncio.gather(*[
-            publisher.multi_publish(topics, event, **kwargs) for publisher in self.publishers
+            publisher.multi_publish(topics, message, **kwargs) for publisher in self.publishers
         ])
 
 
