@@ -30,12 +30,12 @@ class LocalPublisher(Publisher):
         self.connected = False
 
     @override
-    async def _internal_publish(self, topic_name: str, event: Event, **kwargs):
+    async def _internal_publish(self, topic: str, event: Event, **kwargs):
 
         if not self.connected:
             raise EventBusClientNotConnected()
 
-        await self.eventbus.put_event(topic_name, event)
+        await self.eventbus.put_event(topic, event)
 
     def __eq__(self, other):
         return self.identifier == other.identifier
