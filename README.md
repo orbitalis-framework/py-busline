@@ -110,15 +110,18 @@ flowchart LR
 ```
 
 ```python
+# Create a new client using builder pattern
 client: PubSubClient = (PubSubClientBuilder()
-            .with_publisher(
+            .with_publisher(    # add publisher
                 LocalPublisher(eventbus=LocalEventBus())
             )
-            .with_subscriber(
+            .with_subscriber(   # add subscriber
                 LocalSubscriber(eventbus=LocalEventBus())
             )
-            .build())
+            .build())   # return the client
 
+# Regular initialization of a LocalSubscriber,
+# specifying the local eventbus  
 standalone_subscriber = LocalSubscriber(eventbus=LocalEventBus())
 ```
 
@@ -181,15 +184,28 @@ Primitive wraps already support Avro and JSON serialization.
 You can instantiate them as following:
 
 ```python
+# Create a new message with string value "hello"
 StringMessage("hello")
 
+# Create a new message with integer value 42
 Int64Message(42)
 
+# Create a new message with integer value 42
 Int32Message(42)
 
+# Create a new message with floating value 3.14
 Float32Message(3.14)
 
+# Create a new message with floating value 3.14
 Float64Message(3.14)
+```
+
+Primitive wraps allow you to access wrapped value thanks to `value` attribute:
+
+```python
+message = StringMessage("hello")    # create string message with "hello" value
+
+assert message.value == "hello"     # access its inner value
 ```
 
 Following an example in which you can see how to make sendable your custom dataclasses using **JSON** or **Avro**:
@@ -199,19 +215,25 @@ Following an example in which you can see how to make sendable your custom datac
 # JSON
 @dataclass
 class MockUserCreationMessage(JsonMessageMixin):
+    # Public fields:
     email: str
     password: str
 
+
+    # You must provide JSON serialize/deserialize methods 
     @classmethod
     @override
     def from_json(cls, json_str: str) -> Self:
         data = json.loads(json_str)
 
-        return cls(data["email"], data["password"])
+        return cls(data["email"], data["password"])     # return a class instance
 
     @override
     def to_json(self) -> str:
-        return json.dumps(asdict(self))
+        # use dataclasses.asdict to generate a dict version
+        # of the instance, but you could also provide it manually
+        # e.g.: { "email": self.email, "password": self.password }
+        return json.dumps(asdict(self))     
 ```
 
 
@@ -300,12 +322,12 @@ If no topic is specified during unsubscription, subscriber unsubscribes itself f
 
 Also `multi_subscribe` and `multi_unsubscribe` are provided.
 
-If you want to manually notify a subscriber on a given topic (e.g., `"my_topic"`): `notify` method.
+If you want to manually notify a subscriber on a given topic (e.g., `"my_topic"`): `notify` method. We advise you to avoid this during regular uses.
 
 ```python
 subscriber.notify(
-    "my_topic",
-    Event(...)
+    "my_topic",     # topic's name on which subscriber will be notified
+    Event(...)      # event which will be handled by subscriber
 )
 ```
 
@@ -327,16 +349,18 @@ Busline provides two handler implementations:
 ```python
 # Sync version
 def sync_handler_callback(topic: str, event: Event):
-    print(f"{topic} -> {event}")
+    print(f"{topic} -> {event}")    # elaborate the inbound event
 
+# Create new handler based on above sync callback
 handler = CallbackEventHandler(sync_handler_callback)
 ```
 
 ```python
 # Async version
 async def async_handler_callback(topic: str, event: Event):
-    print(f"{topic} -> {event}")
+    print(f"{topic} -> {event}")    # elaborate the inbound event
 
+# Create new handler based on above async callback
 handler = CallbackEventHandler(async_handler_callback)
 ```
 
@@ -373,17 +397,27 @@ async def my_function(topic: str, event: Event):
 
 ```python
 subscriber = MockSubscriber(default_handler=...)
+# fill ... with your handler, e.g. a CallbackEventHandler
 ```
 
 In addiction, when you subscribe to a topic, you can (or not) specify a handler. In case, that handler will be used to handle new events.
 You can specify a `EventHandler` or a function/method (which will be wrapped into a `CallbackHandler`):
 
 ```python
-await subscriber.subscribe("topic", CallbackEventHandler(lambda t, e: ...))
-# or
-await subscriber.subscribe("topic", lambda t, e: ...)
-# or
-await subscriber.subscribe("topic")     # will use default handler if set
+# Subscriber will receive events from topic `"my_topic"`
+# and they will be processed by a CallbackEventHandler based on
+# in-place specified lambda function
+await subscriber.subscribe("my_topic", CallbackEventHandler(lambda t, e: ...))
+
+# Subscriber will receive events from topic `"my_topic"`
+# and they will be processed by a CallbackEventHandler based on
+# in-place specified lambda function.
+# Provided lambda is wrapped into a CallbackEventHandler automatically.
+await subscriber.subscribe("my_topic", lambda t, e: ...)
+
+# Subscriber will receive events from topic `"my_topic"`
+# and they will be processed by default event handler (if set)
+await subscriber.subscribe("my_topic")
 ```
 
 Every new inbound event is handled using the related pre-defined handler or default (_if it was defined_).
@@ -512,12 +546,15 @@ To simplify its creation, `PubSubClientBuilder` is provided.
 For example, if you want to create a client able to share messages both in `LocalEventBus` and to a MQTT broker:
 
 ```python
+# Create a new client using the builder
 client = (PubSubClientBuilder()
-            .with_publishers([
+            .with_publishers([  
+                # add a MQTT publisher (broker on localhost) and a local publisher 
                 MqttPublisher(hostname="127.0.0.1"),
                 LocalPublisher(eventbus=LocalEventBus())
             ])
             .with_subscribers([
+                # add a MQTT subscriber (broker on localhost) and a local subscriber 
                 MqttSubscriber(hostname="127.0.0.1"),
                 LocalSubscriber(eventbus=LocalEventBus())
             ])
@@ -632,21 +669,23 @@ Therefore, the common steps executed during event sending are:
 8. Finally, you can retrieve the message thanks to `event.payload`
 
 ```python
-message = MyMessage()
+message = MyMessage()   # create new message
 
-event = Event(message, ...)
+event = Event(payload=message, ...)     # create new event with above message as payload
 
 rp_event = RegistryPassthroughEvent.from_event(event)   # new association in the registry is created
 
+# Then, serialize the event, e.g. using JSON
 serialized_rp_event = registry_passthrough_event_json_serializer(rp_event)
 
 # send serialized_event
 
+# Deserialize inbound event
 rp_event = registry_passthrough_event_json_deserializer(serialized_rp_event)
 
-event = rp_event.to_event()
+event = rp_event.to_event()     # transform RegistryPassthroughEvent into Event
 
-message = event.payload
+message = event.payload     # retrieve message within payload
 ```
 
 ##### Add to registry manually
@@ -657,6 +696,10 @@ If you want to add an association into registry manually you can:
 - Use `add` method of registry
 
 ```python
+# Create a new custom message, Avro serializable
+# and it will be added to EventRegistry
+# thanks to @add_to_registry
+
 @dataclass
 @add_to_registry
 class MyMessage(AvroMessageMixin):
