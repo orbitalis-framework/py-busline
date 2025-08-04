@@ -1,6 +1,6 @@
 # Busline
 
-Busline is an agnostic asynchronous **pub/sub library** for Python and official library for [Orbitalis](https://github.com/orbitalis-framework/py-orbitalis).
+Busline is an agnostic asynchronous **pub/sub library** for Python.
 
 This library is fully based on `asyncio` and provides out-of-the-box a [local](#local-implementation) and [MQTT](#mqtt-implementation) implementation.
 
