@@ -758,4 +758,6 @@ In order to coordinate the work, please open an issue or a pull request.
 
 **Thank you** for your contributions! 
 
+Author, designer and creator: Nicola Ricciardi
+
 
