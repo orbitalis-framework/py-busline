@@ -758,6 +758,19 @@ In order to coordinate the work, please open an issue or a pull request.
 
 **Thank you** for your contributions! 
 
-Author, designer and creator: Nicola Ricciardi
+## Authors
+
+### Nicola Ricciardi
+
+Designer of all components. Developer of [Orbitalis](#orbitalis)' code base. Documentation referent.
+
+University of Modena and Reggio Emilia.
+
+
+### Marco Picone
+
+Co-Designer of main components. Documentation reviewer.
+
+Associate Professor at University of Modena and Reggio Emilia.
 
 
