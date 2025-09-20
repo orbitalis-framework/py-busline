@@ -768,7 +768,7 @@ In order to coordinate the work, please open an issue or a pull request.
 
 ### Nicola Ricciardi
 
-Designer of all components. Developer of [Orbitalis](#orbitalis)' code base. Documentation referent.
+Architectural designer and developer of code base. Documentation referent.
 
 University of Modena and Reggio Emilia.
 
