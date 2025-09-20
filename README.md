@@ -85,6 +85,12 @@ flowchart LR
     S@{ shape: dbl-circ}
 ```
 
+## Install
+
+```
+pip install busline
+```
+
 
 ## Quick start
 
