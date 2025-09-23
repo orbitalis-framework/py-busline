@@ -1,15 +1,16 @@
 [project]
 name = "busline"
-version = "1.0.3"
+version = "1.0.4"
 authors = [
   { name="Nicola Ricciardi", email="ricciardincl@gmail.com" },
+  { name="Marco Picone" },
 ]
 description = "Agnostic Eventbus for Python"
 readme = "README.md"
 requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: MIT",
     "Operating System :: OS Independent",
 ]
 
