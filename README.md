@@ -1,10 +1,13 @@
 # Busline
 
+> [!IMPORTANT]
+> Guideline, basic documentation and overview are described in [Busline](https://github.com/orbitalis-framework/busline) repository!
+
 Busline is an agnostic asynchronous **pub/sub library** for Python.
 
 This library is fully based on `asyncio` and provides out-of-the-box a [local](#local-implementation) and [MQTT](#mqtt-implementation) implementation.
 
-You can choose between a pair [Publisher](#publisher)/[Subscriber](#subscriber) or a [Client](#client), i.e. a set of publishers and subscribers. 
+You can choose between a pair [Publisher](#publisher)/[Subscriber](#subscriber) or a [Client](#client), i.e. a set of publishers and subscribers.
 
 ```mermaid
 flowchart LR
@@ -48,42 +51,6 @@ flowchart LR
 
 Thanks to Busline, you can choose your favorite programming pattern between **callback** and **iterator** (or both!).
 
-
-
-## Pub/Sub Overview
-
-**Publisher** and **Subscriber** are used in messaging patterns commonly used in software architecture to enable **decoupled communication between components**. 
-
-In a pub/sub system, publishers send messages *without knowing who will receive them*, while subscribers listen for specific message types or topics, allowing for **scalable** and **flexible** event-driven designs. 
-
-An **EventBus** is a specific implementation of this pattern, that acts as a central hub where components can post and subscribe to events. This abstraction helps reduce direct dependencies between modules, making the system easier to maintain, extend, and test.
-
-
-```mermaid
-flowchart LR
-    P@{ shape: rect, label: "Publisher" }
-    S@{ shape: rect, label: "Subscriber" }
-    Q@{ shape: das, label: "EventBus" }
-    P-->Q
-    Q-->S
-```
-
-**Busline** provide an agnostic abstraction of this pattern. 
-In particular, it provides an common and user-friendly interface to implement a *Subscriber* and a *Publisher* which can be used together with an *EventBus*.  
-
-Thanks to its abstractness, we can use plethora of different Publishers and Subscribers together, even if they are related with different EventBuses.
-
-You can notice that, given the logical separation between Publisher and Subscriber, you can use only one of them. For example, if you have Edge sensor which produces data, you only need to use a Publisher. 
-
-```mermaid
-flowchart LR
-    P["MQTT Publisher"] --> Q["MQTT Broker"]
-    S["Your Sensor"] --> P
-
-    P@{ shape: rect}
-    Q@{ shape: das}
-    S@{ shape: dbl-circ}
-```
 
 ## Install
 
