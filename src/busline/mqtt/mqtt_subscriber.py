@@ -42,7 +42,7 @@ class MqttSubscriber(Subscriber, _MqttClientWrapper):
                     self.deserializer(message.payload).to_event()
                 )
         except Exception as e:
-            logging.error(f"{self}: messages handler error: {repr(e)}")
+            logging.error("%s: messages handler error: %s", self, repr(e))
 
 
     @override

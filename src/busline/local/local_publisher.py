@@ -21,12 +21,12 @@ class LocalPublisher(Publisher):
 
     @override
     async def connect(self):
-        logging.info(f"{self}: connecting...")
+        logging.info("%s: connecting...", self)
         self.connected = True
 
     @override
     async def disconnect(self):
-        logging.info(f"{self}: disconnecting...")
+        logging.info("%s: disconnecting...", self)
         self.connected = False
 
     @override

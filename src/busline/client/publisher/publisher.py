@@ -29,7 +29,7 @@ class PublishMixin(ABC):
         Publish the same event in more topics
         """
 
-        logging.debug(f"{self}: publish message {message} in {len(topics)} topics (parallelization: {parallelize})")
+        logging.debug("%s: publish message %s in %d topics (parallelization: %s)", self, message, len(topics), parallelize)
 
         if parallelize:
             tasks = [self.publish(topic, message, **kwargs) for topic in topics]
@@ -92,7 +92,7 @@ class Publisher(EventBusConnector, PublishMixin, ABC):
             publisher_identifier=self.identifier
         )
 
-        logging.info(f"{self}: publish on {topic} -> {event}")
+        logging.info("%s: publish on %s -> %s", self, topic, event)
         await self._on_publishing(topic, event, **kwargs)
         await self._internal_publish(topic, event, **kwargs)
         await self._on_published(topic, event, **kwargs)

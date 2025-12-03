@@ -28,11 +28,11 @@ class TestLocalAndMqttEventBus(unittest.IsolatedAsyncioTestCase):
 
         client = (PubSubClientBuilder()
                     .with_publishers([
-                        MqttPublisher(hostname="127.0.0.1"),
+                        MqttPublisher(hostname="127.0.0.1", port=1883),
                         LocalPublisher(eventbus=LocalEventBus())
                     ])
                     .with_subscribers([
-                        MqttSubscriber(hostname="127.0.0.1"),
+                        MqttSubscriber(hostname="127.0.0.1", port=1883),
                         LocalSubscriber(eventbus=LocalEventBus())
                     ])
                     .build())
@@ -69,3 +69,7 @@ class TestLocalAndMqttEventBus(unittest.IsolatedAsyncioTestCase):
         await client.disconnect()
 
         await asyncio.sleep(1)
+
+
+if __name__ == '__main__':
+    unittest.main()

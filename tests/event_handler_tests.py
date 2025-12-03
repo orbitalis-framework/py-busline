@@ -88,3 +88,6 @@ class TestEventRegistry(unittest.IsolatedAsyncioTestCase):
         ))
 
         self.assertTrue(dummy.test)
+
+if __name__ == '__main__':
+    unittest.main()

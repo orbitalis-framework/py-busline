@@ -27,7 +27,7 @@ class _MqttClientWrapper(EventBusConnector, ABC):
 
     @override
     async def connect(self):
-        logging.info(f"{self}: connecting...")
+        logging.info("%s: connecting...", self)
 
         if self._internal_client is None:
             raise ValueError("Internal client is not set")
@@ -38,7 +38,7 @@ class _MqttClientWrapper(EventBusConnector, ABC):
 
     @override
     async def disconnect(self):
-        logging.info(f"{self}: disconnecting...")
+        logging.info("%s: disconnecting...", self)
 
         # close context
         await self._internal_client.__aexit__(None, None, None)

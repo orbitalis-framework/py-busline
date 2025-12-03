@@ -137,3 +137,7 @@ class TestLocalEventBus(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(0.5)
 
         self.assertIs(received_message, message)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -24,5 +24,5 @@ class LocalEventBus(EventBus):
 
 
     async def put_event(self, topic: str, event: Event):
-        logging.debug(f"New event: {topic} -> {event}")
+        logging.debug("New event: %s -> %s", topic, event)
         return self._instance.put_event(topic, event)

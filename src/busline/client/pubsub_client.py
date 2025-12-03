@@ -74,7 +74,7 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
         """
 
         if len(self.publishers) == 0:
-            logging.warning(f"{self}: subscribe called, but there are no publishers in this client")
+            logging.warning("%s: subscribe called, but there are no publishers in this client", self)
 
         await asyncio.gather(*[
             publisher.publish(topic, message, **kwargs) for publisher in self.publishers
@@ -94,7 +94,7 @@ class PubSubClient(PublishMixin, SubscribeMixin, EventBusConnector):
         """
 
         if len(self.subscribers) == 0:
-            logging.warning(f"{self}: subscribe called, but there are no subscribers in this client")
+            logging.warning("%s: subscribe called, but there are no subscribers in this client", self)
 
         await asyncio.gather(*[
             subscriber.subscribe(topic, handler, **kwargs) for subscriber in self.subscribers

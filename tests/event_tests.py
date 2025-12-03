@@ -180,6 +180,8 @@ class TestEventRegistry(unittest.TestCase):
         self.assertEqual(Float32Message.deserialize(format_type, serialized_data), float32_message)
 
 
+if __name__ == '__main__':
+    unittest.main()
 
 
 

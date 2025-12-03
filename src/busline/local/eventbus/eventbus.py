@@ -16,6 +16,7 @@ class EventBus(ABC):
     """
 
     subscriptions: Dict[str, Set[Subscriber]] = field(default_factory=lambda: defaultdict(set), init=False)
+    fire_and_forget: bool = field(default=True)
 
     @property
     def topics(self) -> List[str]:

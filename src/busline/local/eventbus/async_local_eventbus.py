@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from dataclasses import dataclass, field
+from busline.event import event
 from busline.event.event import Event
 from busline.local.eventbus.eventbus import EventBus
 
@@ -28,10 +29,16 @@ class AsyncLocalEventBus(EventBus):
 
         topic_subscriptions = self._get_topic_subscriptions(topic)
 
-        logging.debug(f"new event {event} on topic {topic}, notify subscribers: {topic_subscriptions}")
+        logging.debug("new event %s on topic %s, notify subscribers: %s", event, topic, topic_subscriptions)
 
         tasks = [subscriber.notify(topic, event) for subscriber in topic_subscriptions]
 
-        await asyncio.gather(*tasks)
+        if self.fire_and_forget:
+            # schedule and return immediately
+            for t in tasks:
+                asyncio.create_task(t)
+        else:
+            # avoid creating extra tasks when we will wait anyway
+            await asyncio.gather(*tasks)
 
-            
+

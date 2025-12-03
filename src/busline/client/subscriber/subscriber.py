@@ -25,7 +25,7 @@ class SubscribeMixin(ABC):
         raise NotImplemented()
 
     async def multi_subscribe(self, topics: List[str], /, parallelize: bool = True, **kwargs):
-        logging.debug(f"{self}: subscribe to {len(topics)} topics (parallelization: {parallelize})")
+        logging.debug("%s: subscribe to %d topics (parallelization: %s)", self, len(topics), parallelize)
 
         if parallelize:
             tasks = [self.subscribe(topic, **kwargs) for topic in topics]
@@ -40,7 +40,7 @@ class SubscribeMixin(ABC):
         raise NotImplemented()
 
     async def multi_unsubscribe(self, topics: List[str], /, parallelize: bool = True, **kwargs):
-        logging.debug(f"{self}: unsubscribe from {len(topics)} topics (parallelization: {parallelize})")
+        logging.debug("%s: unsubscribe from %d topics (parallelization: %s)", self, len(topics), parallelize)
 
         if parallelize:
             tasks = [self.unsubscribe(topic, **kwargs) for topic in topics]
@@ -107,7 +107,7 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
             if not issubclass(type(handler), EventHandler):
                 handler = event_handler(handler)
 
-        logging.info(f"{self}: subscribe on topic {topic}")
+        logging.info("%s: subscribe on topic %s", self, topic)
         await self._on_subscribing(topic, handler, **kwargs)
         await self._internal_subscribe(topic, handler, **kwargs)
         await self._on_subscribed(topic, handler, **kwargs)
@@ -118,7 +118,7 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
         Unsubscribe to topic
         """
 
-        logging.info(f"{self}: unsubscribe from topic {topic}")
+        logging.info("%s: unsubscribe from topic %s", self, topic)
         await self._on_unsubscribing(topic, **kwargs)
         await self._internal_unsubscribe(topic, **kwargs)
         await self._on_unsubscribed(topic, **kwargs)
@@ -151,7 +151,7 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
             if topic in self._handlers:
                 del self._handlers[topic]
             else:
-                logging.warning(f"{self}: unsubscribed from unknown topic: {topic}")
+                logging.warning("%s: unsubscribed from unknown topic: %s", self, topic)
 
     def __get_handlers_of_topic(self, topic: str) -> List[EventHandler]:
 
@@ -171,7 +171,7 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
             if self.handler_always_required:
                 raise EventHandlerNotFound()
             else:
-                logging.warning(f"{self}: event handler for topic '{topic}' not found")
+                logging.warning("%s: event handler for topic '%s' not found", self, topic)
 
         return handlers
 
@@ -183,18 +183,13 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
 
         handlers_of_topic: List[EventHandler] = self.__get_handlers_of_topic(topic)
 
-        tasks = [
-            self._inbound_events_queue.put((topic, event))
-        ]
+        asyncio.create_task(self._inbound_events_queue.put((topic, event)))
 
         if len(handlers_of_topic) > 0:
-            tasks.extend([handler.handle(topic, event) for handler in handlers_of_topic])
+            for handler in handlers_of_topic:
+                asyncio.create_task(handler.handle(topic, event))
         else:
-            tasks.append(self._inbound_not_handled_events_queue.put((topic, event)))
-
-        await asyncio.gather(
-            *tasks
-        )
+            asyncio.create_task(self._inbound_not_handled_events_queue.put((topic, event)))
 
 
     @property
