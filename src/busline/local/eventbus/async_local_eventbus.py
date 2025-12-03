@@ -1,7 +1,7 @@
 import logging
 import asyncio
+from typing import List, Awaitable
 from dataclasses import dataclass, field
-from busline.event import event
 from busline.event.event import Event
 from busline.local.eventbus.eventbus import EventBus
 
@@ -9,7 +9,8 @@ from busline.local.eventbus.eventbus import EventBus
 @dataclass
 class AsyncLocalEventBus(EventBus):
     """
-    Async local eventbus
+    Standard Async EventBus optimized for I/O-bound tasks.
+    Uses asyncio.create_task for concurrency without blocking the loop.
 
     Author: Nicola Ricciardi
     """
@@ -24,21 +25,26 @@ class AsyncLocalEventBus(EventBus):
         self._events_counter = 0
 
     async def put_event(self, topic: str, event: Event):
-
         self._events_counter += 1
 
+        # O(1) Lookup from the optimized base class
         topic_subscriptions = self._get_topic_subscriptions(topic)
 
-        logging.debug("new event %s on topic %s, notify subscribers: %s", event, topic, topic_subscriptions)
+        if not topic_subscriptions:
+            return
 
-        tasks = [subscriber.notify(topic, event) for subscriber in topic_subscriptions]
+        logging.debug("Event on %s: %s", topic, event)
+
+        # Create coroutines list
+        # Note: We rely on the subscriber.notify() implementation to be non-blocking
+        tasks: List[Awaitable] = [
+            subscriber.notify(topic, event) for subscriber in topic_subscriptions
+        ]
 
         if self.fire_and_forget:
-            # schedule and return immediately
+            # Schedule execution immediately on the loop without waiting
             for t in tasks:
                 asyncio.create_task(t)
         else:
-            # avoid creating extra tasks when we will wait anyway
+            # Wait for all subscribers to finish
             await asyncio.gather(*tasks)
-
-

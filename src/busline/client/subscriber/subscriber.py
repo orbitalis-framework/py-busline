@@ -51,6 +51,9 @@ class SubscribeMixin(ABC):
                 await self.unsubscribe(topic, **kwargs)
 
 
+def _default_topic_matcher(t1: str, t2: str) -> bool:
+    return t1 == t2
+
 
 @dataclass(kw_only=True, eq=False)
 class Subscriber(EventBusConnector, SubscribeMixin, ABC):
@@ -67,12 +70,12 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
     """
 
     default_handler: Optional[EventHandler] = field(default=None)
-    topic_names_matcher: Callable[[str, str], bool] = field(repr=False, default=lambda t1, t2: t1 == t2)
+    topic_names_matcher: Callable[[str, str], bool] = field(repr=False, default=_default_topic_matcher)
     handler_always_required: bool = field(default=False)
     _handlers: Dict[str, EventHandler] = field(default_factory=dict, init=False)
-    _inbound_events_queue: Queue[Tuple[str, Event]] = field(default_factory=lambda: Queue(maxsize=0), init=False)
-    _inbound_not_handled_events_queue: Queue[Tuple[str, Event]] = field(default_factory=lambda: Queue(maxsize=0), init=False)
-    _stop_queue_processing: asyncio.Event = field(default_factory=lambda: asyncio.Event(), init=False)
+    _inbound_events_queue: Queue[Tuple[str, Event]] = field(default_factory=Queue, init=False)
+    _inbound_not_handled_events_queue: Queue[Tuple[str, Event]] = field(default_factory=Queue, init=False)
+    _stop_queue_processing: asyncio.Event = field(default_factory=asyncio.Event, init=False)
 
     @override
     async def connect(self):

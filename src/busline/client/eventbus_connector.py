@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from uuid import uuid4
 from typing import Optional
 from dataclasses import dataclass, field
+import uuid
+
+def _generate_identifier():
+    return str(uuid.uuid4())
 
 
 @dataclass(kw_only=True)
@@ -12,7 +15,7 @@ class EventBusConnector(ABC):
     Author: Nicola Ricciardi
     """
 
-    identifier: str = field(default_factory=lambda: str(uuid4()))
+    identifier: str = field(default_factory=_generate_identifier)
 
 
     @abstractmethod

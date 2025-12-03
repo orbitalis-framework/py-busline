@@ -1,4 +1,5 @@
 import asyncio
+import multiprocessing
 import unittest
 
 from busline.client.subscriber.event_handler.callback_event_handler import CallbackEventHandler
