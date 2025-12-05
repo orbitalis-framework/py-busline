@@ -59,7 +59,7 @@ class MqttSubscriber(Subscriber, _MqttClientWrapper):
             self.__subscribed_topics.remove(topic)
         else:
             tasks = [
-                    asyncio.create_task(self._internal_client.unsubscribe(t))
+                    self._internal_client.unsubscribe(t)
                     for t in self.__subscribed_topics
                 ]
 

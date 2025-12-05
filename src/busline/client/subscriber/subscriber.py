@@ -186,14 +186,21 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
 
         handlers_of_topic: List[EventHandler] = self.__get_handlers_of_topic(topic)
 
-        asyncio.create_task(self._inbound_events_queue.put((topic, event)))
+        tasks = [
+            self._inbound_events_queue.put((topic, event))
+        ]
 
         if len(handlers_of_topic) > 0:
             for handler in handlers_of_topic:
-                asyncio.create_task(handler.handle(topic, event))
+                tasks.append(
+                    handler.handle(topic, event)
+                )
         else:
-            asyncio.create_task(self._inbound_not_handled_events_queue.put((topic, event)))
+            tasks.append(
+                self._inbound_not_handled_events_queue.put((topic, event))
+            )
 
+        return asyncio.gather(*tasks)
 
     @property
     async def inbound_events(self) -> AsyncGenerator[tuple[str, Event], None]:

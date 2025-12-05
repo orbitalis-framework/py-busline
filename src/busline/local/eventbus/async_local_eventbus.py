@@ -10,7 +10,6 @@ from busline.local.eventbus.eventbus import EventBus
 class AsyncLocalEventBus(EventBus):
     """
     Standard Async EventBus optimized for I/O-bound tasks.
-    Uses asyncio.create_task for concurrency without blocking the loop.
 
     Author: Nicola Ricciardi
     """
@@ -27,7 +26,6 @@ class AsyncLocalEventBus(EventBus):
     async def put_event(self, topic: str, event: Event):
         self._events_counter += 1
 
-        # O(1) Lookup from the optimized base class
         topic_subscriptions = self._get_topic_subscriptions(topic)
 
         if not topic_subscriptions:
@@ -35,16 +33,8 @@ class AsyncLocalEventBus(EventBus):
 
         logging.debug("Event on %s: %s", topic, event)
 
-        # Create coroutines list
-        # Note: We rely on the subscriber.notify() implementation to be non-blocking
         tasks: List[Awaitable] = [
             subscriber.notify(topic, event) for subscriber in topic_subscriptions
         ]
 
-        if self.fire_and_forget:
-            # Schedule execution immediately on the loop without waiting
-            for t in tasks:
-                asyncio.create_task(t)
-        else:
-            # Wait for all subscribers to finish
-            await asyncio.gather(*tasks)
+        return asyncio.gather(*tasks)
