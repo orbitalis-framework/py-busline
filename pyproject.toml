@@ -1,6 +1,6 @@
 [project]
 name = "busline"
-version = "1.2.0"
+version = "1.2.1"
 authors = [
   { name="Nicola Ricciardi", email="ricciardincl@gmail.com" },
   { name="Marco Picone" },
