@@ -29,7 +29,4 @@ class CallbackEventHandler(EventHandler):
         if self._is_coroutine:
             await self.on_event_callback(topic, event)
         else:
-            # Execute the synchronous callback directly.
-            # In a multiprocessing context, this runs inside the worker process,
-            # so it does not block the main event loop.
             self.on_event_callback(topic, event)

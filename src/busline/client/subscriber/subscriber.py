@@ -186,9 +186,14 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
 
         handlers_of_topic: List[EventHandler] = self.__get_handlers_of_topic(topic)
 
-        tasks = [
-            self._inbound_events_queue.put((topic, event))
-        ]
+        tasks = []
+
+        try:
+            self._inbound_events_queue.put_nowait((topic, event))
+        except asyncio.QueueFull:
+            tasks.append(
+                self._inbound_events_queue.put((topic, event))
+            )
 
         if len(handlers_of_topic) > 0:
             for handler in handlers_of_topic:
@@ -196,9 +201,12 @@ class Subscriber(EventBusConnector, SubscribeMixin, ABC):
                     handler.handle(topic, event)
                 )
         else:
-            tasks.append(
-                self._inbound_not_handled_events_queue.put((topic, event))
-            )
+            try:
+                self._inbound_not_handled_events_queue.put_nowait((topic, event))
+            except asyncio.QueueFull:
+                tasks.append(
+                    self._inbound_not_handled_events_queue.put((topic, event))
+                )
 
         return asyncio.gather(*tasks)
 
