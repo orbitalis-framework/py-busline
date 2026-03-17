@@ -3,7 +3,6 @@ import logging
 from abc import ABC, abstractmethod
 from asyncio import Queue
 from dataclasses import dataclass, field
-from idlelib.window import add_windows_to_menu
 from typing import Optional, override, List, Tuple, Dict, Callable, Any, AsyncGenerator, Awaitable
 
 from busline.client.eventbus_connector import EventBusConnector
